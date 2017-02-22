@@ -1,0 +1,235 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+
+@font-face { 
+	src: url("DJB_Get_Digital.ttf"); 
+	fontFamily: Reloj_Digital; 
+	embedAsCFF: true; 
+}
+
+
+@font-face { 
+	src: url("HomeRem.ttf"); 
+	fontFamily: HomeRem; 
+	embedAsCFF: true; 
+}
+
+
+@font-face { 
+	src: url("Artesanias_2011.ttf"); 
+	fontFamily: Artesanias; 
+	embedAsCFF: true; 
+}
+
+@font-face { 
+	src: url("BlackCastleMF.ttf"); 
+	fontFamily: BlackCastle; 
+	embedAsCFF: true; 
+}
+
+@font-face { 
+	src: url("C.A._Gatintas.ttf"); 
+	fontFamily: Gatintas; 
+	embedAsCFF: true; 
+}
+
+@font-face { 
+	src: url("Cabanyal-Z.ttf"); 
+	fontFamily: Cabanyal; 
+	embedAsCFF: true; 
+}
+
+@font-face { 
+	src: url("Certto_Headline.otf"); 
+	fontFamily: Certto; 
+	embedAsCFF: true; 
+}
+
+@font-face { 
+	src: url("miStyleFont.ttf"); 
+	fontFamily: miStyleFont; 
+	embedAsCFF: true; 
+}
+
+
+
+
+@font-face { 
+	src: url("Artesania Display.ttf"); 
+	fontFamily: Artesania2; 
+	embedAsCFF: true; 
+}
+
+@font-face { 
+	src: url("Comic Sandchez.ttf"); 
+	fontFamily: ComicSandchez; 
+	embedAsCFF: true; 
+}
+
+@font-face { 
+	src: url("CynicalHills-Regular.ttf"); 
+	fontFamily: CynicalHillsRegular; 
+	embedAsCFF: true; 
+}
+
+@font-face { 
+	src: url("PORMASK_.TTF"); 
+	fontFamily: PorMask; 
+	embedAsCFF: true; 
+}
+
+@font-face { 
+	src: url("Dear Annabelle.otf"); 
+	fontFamily: DearAnnabelle; 
+	embedAsCFF: true; 
+}
+
+@font-face { 
+	src: url("Universal Serif.ttf"); 
+	fontFamily: UniversalSerif; 
+	embedAsCFF: true; 
+}
+
+@font-face { 
+	src: url("ArsleGothic.ttf"); 
+	fontFamily: ArsleGothic; 
+	embedAsCFF: false; 
+}
+
+@font-face { 
+	src: url("Gothic_Birthday_Cake.otf"); 
+	fontFamily: GothicBirthdayCake; 
+	embedAsCFF: false; 
+}
+
+/*s|VGroup {
+	fontFamily: Cabanyal;
+	fontSize: 15;
+} */ 
+
+/*
+s|TextInput
+{
+	content-background-color: #FFFFFF;
+}
+*/
+/*s|Label
+{
+	fontFamily: myFontFamily;
+}*/
+
+
+
+s|Label.labelStyle
+{
+	color: #888877;
+	padding-left: 30;
+}
+
+s|Label.detailsStyle
+{
+	textAlign: left;
+	color: #000000;
+	fontWeight: bold;
+}
+
+s|Label.titleGreenStyle
+{
+	color: #008844;
+	fontWeight: bold;
+	/*	fontSize: 32;*/
+}
+
+s|Label.titleGreyStyle
+{
+	color: #777777;
+	fontWeight: bold;
+	/*	fontSize: 32;*/
+}
+
+s|Label.titleDarkGreyStyle
+{
+	color: #557766;
+	fontWeight: bold;
+	/*	fontSize: 32;*/
+}
+
+s|Label.notificationStyle
+{
+	color: #FFFFFF;
+	fontSize: 21;
+	padding-left: 20;
+}
+
+.infoPuntos
+{
+	color: #999999;
+	fontSize: 8;
+	fontFamily: Arial;
+}
+
+.titulo
+{
+	color: #000000;
+	fontSize: 40;
+	fontFamily: HomeRem;
+}
+
+.Puntos
+{
+	color: #eeeeee;
+	fontSize: 14;
+	fontFamily: Arial;
+}
+
+.Saldo
+{
+	color: #eeeeee;
+	fontSize: 16;
+	fontFamily: Arial;
+}
+
+s|ActionBar
+{	
+	chromeColor: #191419;
+	titleAlign: center;
+	height: 100;
+}
+
+s|ActionBar #titleDisplay
+{
+	color: #FFFFFF; 
+	fontSize: 18;
+	fontFamily: "BlackCastle";
+	
+}
+
+
+.action
+{
+	color: #CCCCCC; /* default color is white */
+	fontSize: 20;
+	fontFamily: "BlackCastle";
+}
+
+s|TabbedViewNavigator #tabBar
+{
+	chromeColor: #191419;
+	color: #FFFFFF;
+	fontFamily: "BlackCastle";
+	iconPlacement:left;
+	fontSize: 20;
+	/*textDecoration:underline;*/
+}
+
+s|SkinnableContainer
+{
+	color: #FFFFFF;
+	fontFamily: "BlackCastle";
+	
+}
+
+s|TextInput
+{
+	skinClass: ClassReference("spark.skins.mobile.TextInputSkin");
+}

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" title="HomeView" xmlns:componentes="componentes.*" xmlns:graficos="componentes.graficos.*" creationComplete="view1_creationCompleteHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import componentes.clases.ConexionSocket;
+			import componentes.graficos.ListCombo;
+			import componentes.graficos.PopupNuevaPartida;
+			import componentes.graficos.PopupNuevaTransaccion;
+			import componentes.graficos.PopupNuevoTorneo;
+			import componentes.graficos.TxtApuestas;
+			
+			import controlador.Controlador;
+			
+			import eventos.MercadoEvent;
+			import eventos.PartidaEvent;
+			import eventos.TorneoEvent;
+			
+			import modelo.Modelo;
+			
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import vo.PartidaVO;
+			
+			[Bindable] private var modelApp:Modelo = Modelo.getInstance();
+			private var listTiempo:ListCombo = new ListCombo;
+			
+			
+			
+			
+			
+			
+			protected function view1_creationCompleteHandler(event:FlexEvent):void
+			{
+				/*var evento:TorneoEvent = new TorneoEvent(TorneoEvent.BUSCA_TORNEOS_TODOS);
+				Controlador.getInstance().dispatchEvent(evento);*/
+			}
+			
+			
+			private function set iniciaPartida(val:*):void{
+				if(modelApp.flagInicioPartida == true){
+					this.navigator.pushView(PartidaView);
+				}
+			}
+			
+			protected function fnGeneraTransaccion_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var popNuevaTransaccion:PopupNuevaTransaccion = new PopupNuevaTransaccion();
+				popNuevaTransaccion.width = this.width;
+				popNuevaTransaccion.height = this.height;
+				PopUpManager.addPopUp(popNuevaTransaccion, this, true);
+				PopUpManager.centerPopUp(popNuevaTransaccion);
+			}
+			
+			
+			protected function list_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				//modelApp.fnInicioPartida = fnIniciaPartida; 
+				
+				var evento:MercadoEvent = new MercadoEvent(MercadoEvent.BUSCA_TRANSACCIONES_TODOS);
+				Controlador.getInstance().dispatchEvent(evento);
+			}
+			
+			protected function list_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+			protected function fnPerfil(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				modelApp.fnPerfil.call(this);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<s:RadioButtonGroup id="rbgSelecColor"/>
+	</fx:Declarations>
+	<fx:Binding source="modelApp.flagInicioPartida" destination="iniciaPartida"/>
+	<s:layout>
+		<s:VerticalLayout paddingTop="0" paddingLeft="0"/>
+	</s:layout>
+	<s:List width="100%" height="100%" dataProvider="{modelApp.arrMercados}" creationComplete="list_creationCompleteHandler(event)" 
+			itemRenderer="componentes.graficos.MercadoListRenderer"
+			click="list_clickHandler(event)">
+		
+	</s:List>
+	
+	<s:actionContent>
+		<s:Button label="Nueva" click="fnGeneraTransaccion_clickHandler(event)"/>
+		<s:Button label="Perfil" click="fnPerfil(event)"/>
+	</s:actionContent>
+</s:View>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" title="PARTIDAS" xmlns:componentes="componentes.*" xmlns:graficos="componentes.graficos.*" 
+		creationComplete="view1_creationCompleteHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import componentes.clases.ConexionSocket;
+			import componentes.graficos.ListCombo;
+			import componentes.graficos.PopupNuevaPartida;
+			import componentes.graficos.PopupPerfilOponente;
+			import componentes.graficos.TxtApuestas;
+			
+			import controlador.Controlador;
+			
+			import eventos.PartidaEvent;
+			
+			import modelo.Modelo;
+			
+			import mx.core.mx_internal;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import spark.components.CalloutButton;
+			
+			import vo.JugadorVO;
+			import vo.PartidaVO;
+			
+			[Bindable] private var modelApp:Modelo = Modelo.getInstance();
+			private var listTiempo:ListCombo = new ListCombo;
+			
+			
+			
+			
+			
+			
+			protected function view1_creationCompleteHandler(event:FlexEvent):void
+			{
+				modelApp.popPerfilOponente = new PopupPerfilOponente();
+				modelApp.popPerfilOponente.funPost = fnAceptaDesafio;
+				
+				
+			}
+			
+			
+			private function set iniciaPartida(val:*):void{
+				if(modelApp.flagInicioPartida == true){
+					this.navigator.pushView(PartidaView);
+					
+				}
+			}
+			
+			protected function fnGeneraPartidaNueva_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var popNuevaPartida:PopupNuevaPartida = new PopupNuevaPartida();
+				popNuevaPartida.width = this.width;
+				popNuevaPartida.height = this.height;
+				PopUpManager.addPopUp(popNuevaPartida, this, true);
+				PopUpManager.centerPopUp(popNuevaPartida);
+			}
+			
+			
+			protected function list_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				//modelApp.fnInicioPartida = fnIniciaPartida; 
+				
+				var evento:PartidaEvent = new PartidaEvent(PartidaEvent.BUSCA_PARTIDAS_TODAS, modelApp.jugador.sesion.id, null, null);
+				Controlador.getInstance().dispatchEvent(evento);
+				
+			}
+			
+			protected function fnAceptaDesafio():void{
+				Home(this.parentDocument).list_clickHandler(lstPartidas.selectedItem as PartidaVO); 
+			}
+			
+			protected function list_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(List(event.currentTarget).selectedItem != null){
+					var perfilOponenteEvent:PartidaEvent = new PartidaEvent(PartidaEvent.PERFIL_OPONENTE, 0, '', '', List(event.currentTarget).selectedItem as PartidaVO);
+					Controlador.getInstance().dispatchEvent(perfilOponenteEvent);	
+				}
+				
+				
+			//	Home(this.parentDocument).list_clickHandler(event); 
+			}
+			
+			protected function fnPerfil(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				modelApp.fnPerfil.call(this);
+			}
+			
+			private function set fnPerfilOponente(val:JugadorVO):void{
+				if(val != null){
+					
+					
+					PopUpManager.addPopUp(modelApp.popPerfilOponente, Home(this.parentDocument));
+					PopUpManager.centerPopUp(modelApp.popPerfilOponente);
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Binding source="modelApp.jugadorOponente" destination="fnPerfilOponente"/>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<s:RadioButtonGroup id="rbgSelecColor"/>
+	</fx:Declarations>
+	<!--<fx:Binding source="modelApp.flagInicioPartida" destination="iniciaPartida"/>-->
+	<s:layout>
+		<s:VerticalLayout paddingTop="0" paddingLeft="0"/>
+	</s:layout>
+	<s:actionContent>
+		<s:Button height="80" click="fnGeneraPartidaNueva_clickHandler(event)"
+				  icon="assets/desafio_1.png" includeInLayout="true"
+				  skinClass="componentes.graficos.skins.BotonCircular"/>
+	</s:actionContent>
+	<s:List id="lstPartidas" width="100%" height="100%" dataProvider="{modelApp.arrPartidas}" creationComplete="list_creationCompleteHandler(event)" 
+			itemRenderer="componentes.graficos.PartidaListRenderer"
+			click="list_clickHandler(event)">
+		
+	</s:List>
+	<s:navigationContent>
+		<s:Spacer width="100%">
+			
+		</s:Spacer>
+		<s:Image source="assets/perfil_1.png" click="fnPerfil(event)" height="300"/>
+		
+		
+	</s:navigationContent>
+</s:View>

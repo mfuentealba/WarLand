@@ -1,0 +1,137 @@
+
+<model xmlns="http://ns.adobe.com/Fiber/1.0">
+  <annotation name="ActionScriptGeneration">
+    <item name="FullyQualifyReferences">true</item>
+  </annotation>
+  <service name="CompraService">
+    <annotation name="ActionScriptGeneration">
+      <item name="Source">CompraService</item>
+      <item name="ServiceType">RemoteObject</item>
+      <item name="Package">services.compraservice</item>
+      <item name="Endpoint">http://localhost:8888/WarLand/gateway.php</item>
+      <item name="Destination">CompraService</item>
+    </annotation>
+    <annotation name="ServiceTypeGroup">
+      <item name="ServiceBackendType">PHP</item>
+    </annotation>
+    <annotation name="ServiceConfig">
+      <item name="PHP_RELATIVE_LOCATION">WarLand/services/CompraService.php</item>
+      <item name="PHP_SERVER_ROOT">C:/xampp/htdocs</item>
+      <item name="DEFAULT_ENTITY_PACKAGE">valueObjects</item>
+      <item name="PHP_SERVICES_FOLDER">C:/xampp/htdocs/WarLand/services</item>
+      <item name="PHP_LOCATION">C:/xampp/htdocs/WarLand/services/CompraService.php</item>
+      <item name="LINKED_FILE">CompraService.php</item>
+      <item name="PHP_SERVER_ROOT_URL">http://localhost:8888/</item>
+      <item name="ABSOLUTE_ENDPOINT">http://localhost:8888/WarLand/gateway.php</item>
+      <item name="PHP_CLASS_NAME">CompraService</item>
+    </annotation>
+    <function name="getAllCompra" return-type="Compra[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+    <function name="getCompraByID" return-type="Compra">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="itemID" type="integer"/>
+    </function>
+    <function name="createCompra" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="item" type="Compra"/>
+    </function>
+    <function name="updateCompra" return-type="void">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="item" type="Compra"/>
+    </function>
+    <function name="deleteCompra" return-type="void">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="itemID" type="integer"/>
+    </function>
+    <function name="count" return-type="integer">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="returnType">opaque</item>
+      </annotation>
+    </function>
+    <function name="getCompra_paged" return-type="Compra[]">
+      <annotation name="analyze group">
+        <item name="analyzed">true</item>
+      </annotation>
+      <annotation name="original signature">
+        <item name="inputParams">opaque,opaque</item>
+        <item name="returnType">opaque</item>
+      </annotation>
+      <parameter name="startIndex" type="integer"/>
+      <parameter name="numItems" type="integer"/>
+    </function>
+  </service>
+  <entity name="Compra" persistent="true">
+    <annotation name="EntityProperties">
+      <item name="EntityOriginalName">Compra</item>
+    </annotation>
+    <annotation name="service Group">
+      <item name="service">CompraService</item>
+    </annotation>
+    <annotation name="ServerProperties">
+      <item name="IncludeRemoteClass">nonempty</item>
+    </annotation>
+    <annotation name="DataManagement">
+      <item name="create">createCompra</item>
+      <item name="update">updateCompra</item>
+      <item name="get">getCompraByID</item>
+      <item name="delete">deleteCompra</item>
+      <item name="fillFunc">getAllCompra,getCompra_paged</item>
+      <item name="managingService">CompraService</item>
+    </annotation>
+    <annotation name="getCompraByID">
+      <item name="propertySpecifier">id,usuario_id,fecha_inicio_Trans,estado,monto,fecha_confirmacion_trans,combo_seleccion</item>
+    </annotation>
+    <annotation name="getAllCompra">
+      <item name="propertySpecifier">id,usuario_id,fecha_inicio_Trans,estado,monto,fecha_confirmacion_trans,combo_seleccion</item>
+    </annotation>
+    <annotation name="getCompra_paged">
+      <item name="propertySpecifier">id,usuario_id,fecha_inicio_Trans,estado,monto,fecha_confirmacion_trans,combo_seleccion</item>
+      <item name="pagingEnabled">true</item>
+      <item name="positionalPagingParameters">true</item>
+      <item name="countOperation">count</item>
+    </annotation>
+    <annotation name="ActionScriptGeneration">
+      <item name="Package">valueObjects</item>
+    </annotation>
+    <id name="id" type="integer"/>
+    <property name="usuario_id" type="integer"/>
+    <property name="fecha_inicio_Trans" type="string"/>
+    <property name="estado" type="string"/>
+    <property name="monto" type="integer"/>
+    <property name="fecha_confirmacion_trans" type="string"/>
+    <property name="combo_seleccion" type="string"/>
+  </entity>
+</model>

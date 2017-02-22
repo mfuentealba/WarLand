@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:graficos="componentes.graficos.*"
+				   width="400" height="500" backgroundAlpha="{add}" backgroundColor="#000000"
+				   color="#ffffff"
+				   creationComplete="bordercontainer1_creationCompleteHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import controlador.Controlador;
+			
+			import eventos.MercadoEvent;
+			import eventos.PartidaEvent;
+			import eventos.TorneoEvent;
+			
+			import modelo.Modelo;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import vo.MercadoVO;
+			import vo.PartidaVO;
+			import vo.TorneoVO;
+			
+			[Bindable] private var add:Number = 0;
+			public var funPost:Function;
+			[Bindable] public var msg:String;
+			private var modelApp:Modelo = Modelo.getInstance();
+			private var listMoneda:ListCombo = new ListCombo();
+			
+			
+			protected function bordercontainer1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.addEventListener(Event.ENTER_FRAME, oscurese);
+				listMoneda.dataProvider = modelApp.arrMoneda;
+				listMoneda.labelField = 'duracion';
+				listMoneda.fnPost = seleccionMoneda;
+			}
+			
+			
+			protected function seleccionMoneda(cu:*, op:Boolean = true):void{
+				PopUpManager.removePopUp(listMoneda);
+				tbMoneda.selected = true;
+				if(op){
+					listMoneda.activo = false;
+					txtMoneda.text = cu['duracion'];
+					//_cuentas = cu;	
+				}
+				
+			}	
+			
+			
+			private function oscurese(event:Event):void{
+				add += 0.02;
+				if(add > 0.5){
+					this.removeEventListener(Event.ENTER_FRAME, oscurese);
+				}
+			}
+			
+			
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function funPost_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(funPost != null){
+					funPost.call(this);
+				}
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function generarTransaccion_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				var mercadoVO:MercadoVO = new MercadoVO();
+				
+				
+				mercadoVO.creadorId = modelApp.jugador.sesion.id + '';
+				mercadoVO.cantidad = txtCantidad.text;
+				mercadoVO.estado = 'V';
+				mercadoVO.precio = txtPrecio.text;
+				mercadoVO.moneda = txtMoneda.text;
+				mercadoVO.tipo = 'V';
+				
+				var evento:MercadoEvent = new MercadoEvent(MercadoEvent.CREA_TRANSACCION, mercadoVO);
+				Controlador.getInstance().dispatchEvent(evento);
+				//modelApp.conexion._xmlSocket.send('CP|');
+				PopUpManager.removePopUp(this);
+			}
+			
+			
+			
+			
+			protected function tbMoneda_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(listMoneda.activo == false){
+					listMoneda.activo = true;
+					txtMoneda.text = '';
+					
+					//	lbl.dispatchEvent(new FocusEvent(FocusEvent.FOCUS_IN));
+					listMoneda.horizontalCenter = 0;
+					//listCategorias.percentWidth = 90;
+					listMoneda.width = this.parent.width;
+					listMoneda.height = this.parent.height;
+					PopUpManager.addPopUp(listMoneda, this, true);
+				}
+			}
+			
+			
+			protected function bajaPopup_backKeyPressedHandler(event:KeyboardEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				/*event.stopImmediatePropagation();
+				event.stopPropagation();*/
+				if (event.keyCode == 16777234)
+				{
+					event.preventDefault();
+					
+				}
+				
+				if (event.keyCode == 16777238)
+				{
+					event.preventDefault();
+					
+				
+				}
+				
+			}
+			
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+	</fx:Declarations>
+	<s:BorderContainer width="300" height="242" cornerRadius="2" horizontalCenter="0" borderWeight="3" borderColor="#EEEEEE" backgroundColor="#222222"
+					   
+					   verticalCenter="0">
+		<s:layout>
+			<s:VerticalLayout horizontalAlign="center"  gap="10" paddingBottom="10"/>
+		</s:layout>
+		<s:Group width="100%">
+			<s:Rect width="100%" height="100%" topLeftRadiusX="10" topLeftRadiusY="10" topRightRadiusX="10" topRightRadiusY="10">
+				
+			
+				<s:fill>
+					<s:SolidColor color="#111111" />
+				</s:fill>
+			</s:Rect>
+			<s:Label top="10" left="10" right="10" text="Transacción" fontSize="16" fontWeight="bold" color="#ffffff"/>
+		</s:Group>
+		
+		<!--<s:Rect width="100%" height="1">
+			<s:fill>
+				<s:SolidColor color="#dddddd" />
+			</s:fill>
+		</s:Rect>-->
+		<s:VGroup width="100%" paddingLeft="10" paddingRight="10">
+			
+			<s:Group width="100%" height="100%">
+				<s:TextInput id="txtCantidad" prompt="Cantidad" softKeyboardType="number" height="40" width="100%"
+							 verticalCenter="0" color="#111111"/>
+			</s:Group>
+			<s:Group width="100%" height="100%">
+				<s:TextInput id="txtPrecio" prompt="Precio" height="40" width="100%"
+							 verticalCenter="0" color="#111111"/>
+				
+			</s:Group>
+			
+			<s:Group width="100%" height="100%">
+				<s:TextInput id="txtMoneda" text="Normal" height="40" width="100%" skinClass="spark.skins.mobile.TextInputSkin"
+							 editable="false" verticalCenter="0" color="#000000"/>
+				<s:ToggleButton id="tbMoneda" y="0" right="0" width="100%" height="100%"
+								click="tbMoneda_clickHandler(event)"
+								skinClass="skins.buttons.ComboBoxToggleButtonSkin"/>
+			</s:Group>
+			
+			
+		</s:VGroup>
+		
+		
+		<s:HGroup gap="10">
+			<s:Button label="Generar" click="generarTransaccion_clickHandler(event)"/>
+			
+		</s:HGroup>
+	</s:BorderContainer>
+</s:BorderContainer>

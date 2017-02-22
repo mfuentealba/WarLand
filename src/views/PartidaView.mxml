@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" title="Desafio" xmlns:graficos="componentes.graficos.*" 
+		creationComplete="view1_creationCompleteHandler(event)" backKeyPressed="view1_backKeyPressedHandler(event)" menuKeyPressed="view1_menuKeyPressedHandler(event)"
+		>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import componentes.graficos.Chat;
+			import componentes.graficos.PopupMensaje;
+			import componentes.graficos.PopupReloj;
+			
+			import controlador.Controlador;
+			
+			import eventos.MensajeEvent;
+			import eventos.PartidaEvent;
+			
+			import modelo.Modelo;
+			
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import spark.components.Button;
+			import spark.components.CalloutButton;
+			import spark.layouts.HorizontalLayout;
+			
+			
+			
+			[Bindable] private var modelApp:Modelo = Modelo.getInstance();
+			
+			
+			
+			protected function bajaPopup_backKeyPressedHandler(event:KeyboardEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				/*event.stopImmediatePropagation();
+				event.stopPropagation();*/
+				/*if (event.keyCode == 16777234)
+				{
+					event.preventDefault();
+					NativeApplication.nativeApplication.exit();
+				}*/
+				
+				if (event.keyCode == 16777238 && modelApp.partidoActivo)
+				{
+					event.preventDefault();
+					
+					var mensaje:PopupMensaje = new PopupMensaje();
+					PopUpManager.addPopUp(mensaje, this);
+					mensaje.msg = 'Desea abandonar?';
+					mensaje.btnExtra = true;
+					mensaje.btnLabel = 'Aceptar';
+					mensaje.funPost = modelApp.fnRendir;
+					mensaje.width = this.width;
+					mensaje.height = this.height;
+					PopUpManager.centerPopUp(mensaje);
+					mensaje.btnDefault.label = 'Cancelar';
+				}
+				
+			}
+			
+			
+			
+			
+			
+			
+			protected function view1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				//addEventListener("keyDown", bajaPopup_backKeyPressedHandler, false, 1);
+				var btnAccion:CalloutButton = new CalloutButton();
+				btnAccion.id = 'btnAccion';
+				btnAccion.label = 'Accion';
+				
+				var btnTablas:Button = new Button();
+				btnTablas.id = 'btnTablas';
+				btnTablas.label = 'Tablas';
+				btnTablas.percentWidth = 100;
+				btnTablas.addEventListener(MouseEvent.CLICK, fnTablas);
+				var btnRendirse:Button = new Button();
+				btnRendirse.percentWidth = 100;
+				btnRendirse.id = 'btnRendirse';
+				btnRendirse.label = 'Rendirse';
+				btnRendirse.addEventListener(MouseEvent.CLICK, fnRendicion)
+				var btnChat:Button = new Button();
+				btnChat.percentWidth = 100;
+				btnChat.id = 'btnChat';
+				btnChat.label = 'Chat';
+				btnChat.addEventListener(MouseEvent.CLICK, fnChat);
+				/*var btnCalculo:Button = new Button();
+				btnCalculo.id = 'btnCalculo';
+				btnCalculo.label = 'Calculo';
+				btnCalculo.addEventListener(MouseEvent.CLICK, tablero.fnCalculo);*/
+				btnAccion.calloutContent = [btnTablas, btnRendirse, btnChat/*, btnCalculo*/];
+				var ly:VerticalLayout = new VerticalLayout();
+				ly.gap = 0;
+				btnAccion.calloutLayout = ly;
+				this.actionContent = [btnAccion];
+				
+			}
+			
+			private function fnTablas(event:MouseEvent):void{
+				var partidaEvent:PartidaEvent = new PartidaEvent(PartidaEvent.OFERTA_TABLAS, 0, '', '');
+				Controlador.getInstance().dispatchEvent(partidaEvent);
+			}
+			
+			private function fnRendicion(event:MouseEvent):void{
+				var mensaje:PopupMensaje = new PopupMensaje();
+				PopUpManager.addPopUp(mensaje, this);
+				mensaje.msg = 'Desea abandonar?';
+				mensaje.btnExtra = true;
+				mensaje.btnLabel = 'Aceptar';
+				mensaje.funPost = modelApp.fnRendir;
+				mensaje.width = this.width;
+				mensaje.height = this.height;
+				PopUpManager.centerPopUp(mensaje);
+				mensaje.btnDefault.label = 'Cancelar';
+			}
+			
+			private function fnChat(event:MouseEvent):void{
+				var chat:Chat = new Chat();
+				
+				chat.width = this.parentApplication.width;
+				chat.height = this.parentApplication.height * 2 / 3;
+				
+				PopUpManager.addPopUp(chat, this, true);
+				PopUpManager.centerPopUp(chat);
+				chat.fnEnviarMsg = msgChat; 
+			}
+			
+			
+			private function msgChat(msg:String, chat:Chat):void{
+				var msgEvent:MensajeEvent = new MensajeEvent(MensajeEvent.MENSAJE_PRIVADO, msg);
+				Controlador.getInstance().dispatchEvent(msgEvent);
+				//PopUpManager.removePopUp(chat);
+			}
+			
+			private function set fnFinPartida(val:int):void{
+				//this.navigator.popView();
+				modelApp.partidoActivo = false;
+				modelApp.tablero.relojOponente.timer.stop();
+				modelApp.tablero.relojUsuario.timer.stop();
+				if(modelApp.resultadoPartida == '1'){
+					var mensaje:PopupMensaje = new PopupMensaje();
+					PopUpManager.addPopUp(mensaje, this);
+					mensaje.msg = 'Ha ganado la Partida';
+					
+					mensaje.width = this.width;
+					mensaje.height = this.height;
+					PopUpManager.centerPopUp(mensaje);
+					mensaje.btnDefault.label = 'Aceptar';
+				} else {
+					/*var mensaje:PopupMensaje = new PopupMensaje();
+					PopUpManager.addPopUp(mensaje, this);
+					mensaje.msg = 'Ha perdido la Partida';
+					
+					mensaje.width = this.width;
+					mensaje.height = this.height;
+					PopUpManager.centerPopUp(mensaje);
+					mensaje.btnDefault.label = 'Aceptar';*/
+					
+				}
+				
+				
+			}
+			
+			protected function view1_backKeyPressedHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				trace('view1_backKeyPressedHandler');
+				if (modelApp.partidoActivo)
+				{
+					event.preventDefault();
+					
+					var mensaje:PopupMensaje = new PopupMensaje();
+					PopUpManager.addPopUp(mensaje, this);
+					mensaje.msg = 'Desea abandonar?';
+					mensaje.title = '';
+					mensaje.imagen = 'assets/images/ChessIconOK.png';
+					mensaje.btnExtra = true;
+					mensaje.btnLabel = 'Aceptar';
+					mensaje.funPost = modelApp.fnRendir;
+					mensaje.width = this.width;
+					mensaje.height = this.height;
+					PopUpManager.centerPopUp(mensaje);
+					mensaje.btnDefault.label = 'Cancelar';
+				}
+			}
+			
+			protected function view1_menuKeyPressedHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				trace('view1_menuKeyPressedHandler');
+			}
+			
+			private function set fnTablasOferta(val:int):void{
+				var mensaje:PopupMensaje = new PopupMensaje();
+				PopUpManager.addPopUp(mensaje, this);
+				mensaje.msg = 'El oponente ofrece tablas';
+				mensaje.btnExtra = true;
+				mensaje.btnLabel = 'Aceptar';
+				mensaje.funPost = modelApp.fnTablas;
+				mensaje.width = this.width;
+				mensaje.height = this.height;
+				PopUpManager.centerPopUp(mensaje);
+				mensaje.btnDefault.label = 'Cancelar';
+			}
+			
+			
+			private function set fnDesconexion(val:Boolean):void{
+				if(val){
+					modelApp.popRelojDesconexion = new PopupReloj();
+					modelApp.popRelojDesconexion.id = 'reloj';
+					PopUpManager.addPopUp(modelApp.popRelojDesconexion, this);
+					modelApp.popRelojDesconexion.relojRendicion.timer.start();
+					modelApp.popRelojDesconexion.width = this.width;
+					modelApp.popRelojDesconexion.height = this.height;
+					PopUpManager.centerPopUp(modelApp.popRelojDesconexion);
+					modelApp.popRelojDesconexion.relojRendicion.callback = fnTriunfoDesconexion;
+						
+				}
+				
+			}
+			
+			
+			private function fnTriunfoDesconexion():void{
+				//PopUpManager.removePopUp(this['reloj']);
+				modelApp.fnTriunfo.call(this, 'Triunfo por desconexion');
+				
+			}
+			
+		]]>
+	</fx:Script>
+	<s:layout>
+		<s:VerticalLayout/>
+	</s:layout>
+	
+	<graficos:Tablero id="tablero" width="100%" height="100%" tiempo="{modelApp.partida.duracion}" fnChat="fnChat" colorUsuario="{modelApp.partida.colorUsuario}"/>
+	<fx:Binding source="modelApp.finPartida" destination="fnFinPartida"/>
+	<fx:Binding source="modelApp.msjTablas" destination="fnTablasOferta"/>
+	<fx:Binding source="modelApp.desconexion" destination="fnDesconexion"/>
+</s:View>

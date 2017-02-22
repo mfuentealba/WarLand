@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:graficos="componentes.graficos.*"
+				   width="400" height="500" backgroundAlpha="{add}" backgroundColor="#000000"
+				   color="#ffffff"
+				   creationComplete="bordercontainer1_creationCompleteHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import controlador.Controlador;
+			
+			import eventos.PartidaEvent;
+			import eventos.TorneoEvent;
+			
+			import modelo.Modelo;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import vo.PartidaVO;
+			import vo.TorneoVO;
+			
+			[Bindable] private var add:Number = 0;
+			public var funPost:Function;
+			[Bindable] public var msg:String;
+			private var modelApp:Modelo = Modelo.getInstance();
+			private var listTiempo:ListCombo = new ListCombo();
+			private var listSistema:ListSistema = new ListSistema();
+			private var listJugadores:ListCombo = new ListCombo();
+			private var listRondas:ListCombo = new ListCombo();
+			
+			protected function bordercontainer1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.addEventListener(Event.ENTER_FRAME, oscurese);
+				listTiempo.dataProvider = modelApp.arrTiempo;
+				listTiempo.labelField = 'duracion';
+				listTiempo.fnPost = seleccionTiempo;
+				listSistema.labelField = 'duracion';
+				listSistema.dataProvider = modelApp.arrSistema;
+				listSistema.fnPost = seleccionSistema;
+				
+				listJugadores.labelField = 'numero';
+				listJugadores.fnPost = seleccionJugadores;
+				listRondas.labelField = 'numero';
+				listRondas.fnPost = seleccionRondas;
+			}
+			
+			
+			protected function seleccionTiempo(cu:*, op:Boolean = true):void{
+				PopUpManager.removePopUp(listTiempo);
+				tbTiempo.selected = true;
+				if(op){
+					listTiempo.activo = false;
+					txtTiempo.text = cu['duracion'];
+					//_cuentas = cu;	
+				}
+				
+			}	
+			
+			protected function seleccionSistema(cu:*, op:Boolean = true):void{
+				PopUpManager.removePopUp(listSistema);
+				tbSistema.selected = true;
+				if(op){
+					listSistema.activo = false;
+					txtSistema.text = cu['duracion'];
+					//_cuentas = cu;	
+				}
+				listJugadores.dataProvider = ArrayCollection(modelApp.objJugadores[cu['id']]);
+				listRondas.dataProvider = ArrayCollection(modelApp.objRondas[cu['id']]);
+			}	
+			
+			protected function seleccionJugadores(cu:*, op:Boolean = true):void{
+				PopUpManager.removePopUp(listJugadores);
+				tbJugadores.selected = true;
+				if(op){
+					listJugadores.activo = false;
+					txtJugadores.text = cu['duracion'];
+					//_cuentas = cu;	
+				}
+				
+			}	
+			
+			
+			protected function seleccionRondas(cu:*, op:Boolean = true):void{
+				PopUpManager.removePopUp(listRondas);
+				tbRondas.selected = true;
+				if(op){
+					listRondas.activo = false;
+					txtRondas.text = cu['duracion'];
+					//_cuentas = cu;	
+				}
+				
+			}	
+			
+			private function oscurese(event:Event):void{
+				add += 0.02;
+				if(add > 0.5){
+					this.removeEventListener(Event.ENTER_FRAME, oscurese);
+				}
+			}
+			
+			
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function funPost_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(funPost != null){
+					funPost.call(this);
+				}
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function generarTorneo_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				modelApp.torneoVO = new TorneoVO();
+				
+				modelApp.torneoVO.duracion = txtTiempo.text;
+				modelApp.torneoVO.sistemaJuego = txtSistema.text;
+				modelApp.torneoVO.maxJugadores = txtJugadores.text;
+				modelApp.torneoVO.rondas = txtRondas.text;
+				modelApp.torneoVO.inscripcion = txtApuesta.txtValor.text;
+				modelApp.torneoVO.premio = txtApuesta.lblGanancia.text;
+				modelApp.torneoVO.minELO = txtELOMin.text; 
+				modelApp.torneoVO.maxELO = txtELOMax.text;	
+				modelApp.torneoVO.creadorId = modelApp.jugador.sesion.id + '';
+				
+				var evento:TorneoEvent = new TorneoEvent(TorneoEvent.CREA_TORNEO, modelApp.torneoVO);
+				Controlador.getInstance().dispatchEvent(evento);
+				//modelApp.conexion._xmlSocket.send('CP|');
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function tbTiempo_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(listTiempo.activo == false){
+					listTiempo.activo = true;
+					txtTiempo.text = '';
+					
+					//	lbl.dispatchEvent(new FocusEvent(FocusEvent.FOCUS_IN));
+					listTiempo.horizontalCenter = 0;
+					//listCategorias.percentWidth = 90;
+					listTiempo.width = this.parent.width;
+					listTiempo.height = this.parent.height;
+					PopUpManager.addPopUp(listTiempo, this, true);
+				}
+			}
+			
+			
+			protected function txtApuesta_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				txtApuesta.arrApuestas = [{cantidad: 300, ganancia: 0}, {cantidad: 500, ganancia: 0}, {cantidad: 1000, ganancia: 0}, {cantidad: 1500, ganancia: 75}, {cantidad: 2000, ganancia: 105}, {cantidad: 3000, ganancia: 0}, {cantidad: 5000, ganancia: 0}];
+			}
+			
+			
+			protected function tbSistema_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(listSistema.activo == false){
+					listSistema.activo = true;
+					txtSistema.text = '';
+					
+					//	lbl.dispatchEvent(new FocusEvent(FocusEvent.FOCUS_IN));
+					listSistema.horizontalCenter = 0;
+					//listCategorias.percentWidth = 90;
+					listSistema.width = this.parent.width;
+					listSistema.height = this.parent.height;
+					PopUpManager.addPopUp(listSistema, this, true);
+				}
+			}
+			
+			protected function tbJugadores_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(listJugadores.activo == false){
+					listJugadores.activo = true;
+					txtJugadores.text = '';
+					
+					//	lbl.dispatchEvent(new FocusEvent(FocusEvent.FOCUS_IN));
+					listJugadores.horizontalCenter = 0;
+					//listCategorias.percentWidth = 90;
+					listJugadores.width = this.width;
+					listJugadores.height = this.height;
+					PopUpManager.addPopUp(listJugadores, this, true);
+				}
+			}
+			
+			protected function tbRondas_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(listRondas.activo == false){
+					listRondas.activo = true;
+					txtRondas.text = '';
+					
+					//	lbl.dispatchEvent(new FocusEvent(FocusEvent.FOCUS_IN));
+					listRondas.horizontalCenter = 0;
+					//listCategorias.percentWidth = 90;
+					listRondas.width = this.width;
+					listRondas.height = this.height;
+					PopUpManager.addPopUp(listRondas, this, true);
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+	</fx:Declarations>
+	<s:BorderContainer width="300" height="400" cornerRadius="2" horizontalCenter="0" borderWeight="3" borderColor="#EEEEEE" backgroundColor="#222222"
+					   
+					   verticalCenter="0">
+		<s:layout>
+			<s:VerticalLayout horizontalAlign="center"  gap="10" paddingBottom="10"/>
+		</s:layout>
+		<s:Group width="100%">
+			<s:Rect width="100%" height="100%" topLeftRadiusX="10" topLeftRadiusY="10" topRightRadiusX="10" topRightRadiusY="10">
+				
+			
+				<s:fill>
+					<s:SolidColor color="#111111" />
+				</s:fill>
+			</s:Rect>
+			<s:Label top="10" left="10" right="10" text="Atencion" fontSize="16" fontWeight="bold" color="#ffffff"/>
+		</s:Group>
+		
+		<!--<s:Rect width="100%" height="1">
+			<s:fill>
+				<s:SolidColor color="#dddddd" />
+			</s:fill>
+		</s:Rect>-->
+		<s:VGroup width="100%" paddingLeft="10" paddingRight="10">
+			
+			<s:Group width="100%" height="100%">
+				<s:TextInput id="txtTiempo" text="5:00" height="40" width="100%" skinClass="spark.skins.mobile.TextInputSkin"
+							 editable="false" verticalCenter="0" color="#000000"/>
+				<s:ToggleButton id="tbTiempo" y="0" right="0" width="100%" height="100%"
+								click="tbTiempo_clickHandler(event)"
+								skinClass="skins.buttons.ComboBoxToggleButtonSkin"/>
+			</s:Group>
+			<s:Group width="100%" height="100%">
+				<s:TextInput id="txtSistema" text="Sistema de Juego" height="40" width="100%" skinClass="spark.skins.mobile.TextInputSkin"
+							 editable="false" verticalCenter="0" color="#000000"/>
+				<s:ToggleButton id="tbSistema" y="0" right="0" width="100%" height="100%"
+								click="tbSistema_clickHandler(event)"
+								skinClass="skins.buttons.ComboBoxToggleButtonSkin"/>
+			</s:Group>
+			
+			<s:Group width="100%" height="100%">
+				<s:TextInput id="txtJugadores" text="Nº de jugadores" height="40" width="100%" skinClass="spark.skins.mobile.TextInputSkin"
+							 editable="false" verticalCenter="0" color="#000000"/>
+				<s:ToggleButton id="tbJugadores" y="0" right="0" width="100%" height="100%"
+								click="tbJugadores_clickHandler(event)"
+								skinClass="skins.buttons.ComboBoxToggleButtonSkin"/>
+			</s:Group>
+			
+			<s:Group width="100%" height="100%">
+				<s:TextInput id="txtRondas" text="Nº de rondas" height="40" width="100%" skinClass="spark.skins.mobile.TextInputSkin"
+							 editable="false" verticalCenter="0" color="#000000"/>
+				<s:ToggleButton id="tbRondas" y="0" right="0" width="100%" height="100%"
+								click="tbRondas_clickHandler(event)"
+								skinClass="skins.buttons.ComboBoxToggleButtonSkin"/>
+			</s:Group>
+			
+			
+			<s:Label text="Valor Inscripción"/>
+			<graficos:TxtApuestas id="txtApuesta" width="100%" creationComplete="txtApuesta_creationCompleteHandler(event)">
+			</graficos:TxtApuestas>
+			<s:HGroup width="100%">
+				<s:Label text="ELO: "/>
+				<s:TextInput id="txtELOMin" text="0" width="100%" color="#111111" softKeyboardType="number"/>
+				<s:Label text="-"/>
+				<s:TextInput id="txtELOMax" text="9999" width="100%" color="#111111" softKeyboardType="number"/>
+			</s:HGroup>
+		</s:VGroup>
+		
+		
+		<s:HGroup gap="10">
+			<s:Button label="Generar Partida" click="generarTorneo_clickHandler(event)"/>
+			
+		</s:HGroup>
+	</s:BorderContainer>
+</s:BorderContainer>

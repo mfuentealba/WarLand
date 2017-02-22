@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ViewNavigatorApplication xmlns:fx="http://ns.adobe.com/mxml/2009" 
+							xmlns:s="library://ns.adobe.com/flex/spark" firstView="views.LoginView" applicationDPI="160"
+							creationComplete="ini(event)" fontSize="{modelApp.tamLetraNormal}">
+	<fx:Script>
+		<![CDATA[
+			import air.net.URLMonitor;
+			
+			import componentes.graficos.PopupMensaje;
+			
+			import controlador.Controlador;
+			
+			import eventos.MensajeEvent;
+			import eventos.PartidaEvent;
+			
+			import modelo.Modelo;
+			
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.ResultEvent;
+			
+			import views.ProfileView;
+			
+			
+			
+			
+			[Bindable] public var modelApp:Modelo = Modelo.getInstance();
+			private var _monitor:URLMonitor;
+			private function set fnMsg(val:int):void{
+				modelApp.popMsg.width = this.width;
+				modelApp.popMsg.height = this.height;
+				PopUpManager.addPopUp(modelApp.popMsg, this, true);
+				PopUpManager.centerPopUp(modelApp.popMsg);
+				modelApp.bloqueo = false;
+			}
+			
+			
+			private function set fnCambio(val:*):void{
+				modelApp.popMsg.width = this.width;
+				modelApp.popMsg.height = this.height;
+				modelApp.popMsg.msg = val + '';
+				PopUpManager.addPopUp(modelApp.popMsg, this, true);
+				PopUpManager.centerPopUp(modelApp.popMsg);
+			}
+			
+			protected function config_resultHandler(event:ResultEvent):void
+			{
+				// TODO Auto-generated method stub
+				modelApp.conexion.server = event.result.config.server.ip;
+				modelApp.conexion.port = event.result.config.server.port;
+				modelApp.conexionChat.server = event.result.config.chat.ip;
+				modelApp.conexionChat.port = event.result.config.chat.port;
+				modelApp.conexion.ini();
+				modelApp.conexionChat.funPostConexion = funPostConexion;
+				
+				
+				var _urlForRequest:URLRequest = new URLRequest("http://www.google.com");
+				_monitor = new URLMonitor(_urlForRequest);
+				_monitor.addEventListener(StatusEvent.STATUS, onStatusChange);
+				_monitor.start();
+			}
+			
+			private function onStatusChange(e:StatusEvent):void
+			{
+				if(_monitor.available == true)
+				{
+					//loquesea
+					
+				}
+				else
+				{
+					//loquesea
+					fnDesconexion();
+				}
+			}
+			
+			
+			private function funPostConexion():void{
+				var mensajeEvent:MensajeEvent = new MensajeEvent(MensajeEvent.ID_CHAT, modelApp.jugador.jugadorVO.id);
+				Controlador.getInstance().dispatchEvent(mensajeEvent);
+			}
+			
+			protected function ini(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				config.send();
+				modelApp.fnRendir = fnRendir;
+				modelApp.fnTriunfo = fnTriunfo;
+				modelApp.fnPerfil = fnPerfil;
+				modelApp.fnTablas = fnTablas;
+				modelApp.fnDesconexion = fnDesconexion;
+				this.actionBar.percentHeight = 5;
+				modelApp.apli = this;
+				
+				modelApp.tamAnc = flash.system.Capabilities.screenResolutionX;
+				modelApp.tamAlt = flash.system.Capabilities.screenResolutionY;
+				trace("Ancho = " + modelApp.tamAnc);
+				trace("Altura = " + modelApp.tamAlt);
+				if(modelApp.tamAlt > 2000){
+					modelApp.tamLetraNormal = 40;
+					modelApp.tamBtn = 60;
+				} else {
+					modelApp.tamLetraNormal = 13;
+					modelApp.tamBtn = 30;
+				}
+
+			}
+			
+			private function fnDesconexion():void{
+				this.navigator.popToFirstView();
+			}
+			
+			private function fnRendir(event:* = null, Info:String = null):void{
+				var obj:Object;//= {puntosJ1: modelApp.partida., puntosJ2:};
+				var ganador:String = (modelApp.partida.colorUsuario == 'B' ? 'N' : 'B');
+				modelApp.partidoActivo = false;
+				modelApp.partida.resultado = modelApp.partida.idOponente + ":" + ganador;
+				modelApp.partida.detalle_fin = Info;
+				var diferenciaElo:int = Math.abs(int(modelApp.partida.puntosJ1) - int(modelApp.partida.puntosJ2)) / 10;
+				
+				
+				if(Number(modelApp.partida.idOponente) == modelApp.partida.idPlayer1){
+					if(int(modelApp.partida.puntosJ1) < int(modelApp.partida.puntosJ2)){
+						modelApp.partida.puntosJ1 = '' + (int(modelApp.partida.puntosJ1) + 25 + diferenciaElo);
+						modelApp.partida.puntosJ2 = '' + (int(modelApp.partida.puntosJ2) - 25 - diferenciaElo);
+					} else {
+						modelApp.partida.puntosJ1 = '' + (int(modelApp.partida.puntosJ1) + 25 - diferenciaElo);
+						modelApp.partida.puntosJ2 = '' + (int(modelApp.partida.puntosJ2) - 25 + diferenciaElo);
+					}
+					modelApp.partida.gananciaP1 = modelApp.partida.ganancia;
+					modelApp.partida.gananciaP2 = '0';
+					
+				} else {
+					if(int(modelApp.partida.puntosJ2) < int(modelApp.partida.puntosJ1)){
+						modelApp.partida.puntosJ2 = '' + (int(modelApp.partida.puntosJ2) + 25 + diferenciaElo);
+						modelApp.partida.puntosJ1 = '' + (int(modelApp.partida.puntosJ1) - 25 - diferenciaElo);
+					} else {
+						modelApp.partida.puntosJ2 = '' + (int(modelApp.partida.puntosJ2) + 25 - diferenciaElo);
+						modelApp.partida.puntosJ1 = '' + (int(modelApp.partida.puntosJ1) - 25 + diferenciaElo);
+					}
+					modelApp.partida.gananciaP2 = modelApp.partida.ganancia;
+					modelApp.partida.gananciaP1 = '0';
+				}
+				modelApp.reconFen = '';
+				var evento:PartidaEvent = new PartidaEvent(PartidaEvent.FIN_PARTIDA, 0, '', '', modelApp.partida);
+				Controlador.getInstance().dispatchEvent(evento);
+				modelApp.tablero.relojOponente.timer.stop();
+				modelApp.tablero.relojUsuario.timer.stop();
+			}
+			
+			private function fnTriunfo(Info:String = null):void{
+				var obj:Object;//= {puntosJ1: modelApp.partida., puntosJ2:};
+				var ganador:String = modelApp.partida.colorUsuario;
+				modelApp.partidoActivo = false;
+				modelApp.partida.resultado = modelApp.jugador.jugadorVO.id + ":" + ganador;
+				modelApp.partida.detalle_fin = Info;
+				var diferenciaElo:int = Math.abs(int(modelApp.partida.puntosJ1) - int(modelApp.partida.puntosJ2)) / 10;
+				
+				
+				if(Number(modelApp.partida.idOponente) == modelApp.partida.idPlayer1){
+					if(int(modelApp.partida.puntosJ1) < int(modelApp.partida.puntosJ2)){
+						modelApp.partida.puntosJ1 = '' + (int(modelApp.partida.puntosJ1) + 25 + diferenciaElo);
+						modelApp.partida.puntosJ2 = '' + (int(modelApp.partida.puntosJ2) - 25 - diferenciaElo);
+					} else {
+						modelApp.partida.puntosJ1 = '' + (int(modelApp.partida.puntosJ1) + 25 - diferenciaElo);
+						modelApp.partida.puntosJ2 = '' + (int(modelApp.partida.puntosJ2) - 25 + diferenciaElo);
+					}
+					modelApp.partida.gananciaP1 = '0';
+					modelApp.partida.gananciaP2 = modelApp.partida.ganancia;
+					
+				} else {
+					if(int(modelApp.partida.puntosJ2) < int(modelApp.partida.puntosJ1)){
+						modelApp.partida.puntosJ1 = '' + (int(modelApp.partida.puntosJ1) + 25 + diferenciaElo);
+						modelApp.partida.puntosJ2 = '' + (int(modelApp.partida.puntosJ2) - 25 - diferenciaElo);
+					} else {
+						modelApp.partida.puntosJ1 = '' + (int(modelApp.partida.puntosJ1) + 25 - diferenciaElo);
+						modelApp.partida.puntosJ2 = '' + (int(modelApp.partida.puntosJ2) - 25 + diferenciaElo);
+					}
+					modelApp.partida.gananciaP1 = modelApp.partida.ganancia;
+					modelApp.partida.gananciaP2 = '0';
+				}
+				
+				var evento:PartidaEvent = new PartidaEvent(PartidaEvent.FIN_PARTIDA2, 0, '', '', modelApp.partida);
+				Controlador.getInstance().dispatchEvent(evento);
+				modelApp.tablero.relojOponente.timer.stop();
+				modelApp.tablero.relojUsuario.timer.stop();
+			}
+			
+			
+			private function fnTablas(event:* = null, Info:String = null):void{
+				var obj:Object;//= {puntosJ1: modelApp.partida., puntosJ2:};
+				var ganador:String = 'T'
+				modelApp.partidoActivo = false;
+				modelApp.partida.resultado = "T:" + ganador;
+				modelApp.partida.detalle_fin = 'Tablas de mutuo acuerdo';
+				var diferenciaElo:int = Math.abs(int(modelApp.partida.puntosJ1) - int(modelApp.partida.puntosJ2)) / 10;
+				
+				if(int(modelApp.partida.puntosJ1) < int(modelApp.partida.puntosJ2)){
+					modelApp.partida.puntosJ1 = '' + (int(modelApp.partida.puntosJ1) + 5 + diferenciaElo);
+					modelApp.partida.puntosJ2 = '' + (int(modelApp.partida.puntosJ2) + 5 - diferenciaElo);
+				} else {
+					modelApp.partida.puntosJ1 = '' + (int(modelApp.partida.puntosJ1) + 5 - diferenciaElo);
+					modelApp.partida.puntosJ2 = '' + (int(modelApp.partida.puntosJ2) + 5 + diferenciaElo);
+				}
+				modelApp.partida.gananciaP1 = '0';
+				modelApp.partida.gananciaP2 = '0';
+				
+				modelApp.reconFen = '';
+				
+				var evento:PartidaEvent = new PartidaEvent(PartidaEvent.FIN_PARTIDA, 0, '', '', modelApp.partida);
+				Controlador.getInstance().dispatchEvent(evento);
+				modelApp.tablero.relojOponente.timer.stop();
+				modelApp.tablero.relojUsuario.timer.stop();
+			}
+			
+			
+			public function fnPerfil():void{
+				this.navigator.pushView(ProfileView);
+			}
+			
+			private function set fnRevision(val:Boolean):void{
+				
+			}
+			
+			public function set bloqDes(value:Boolean):void{
+				if(value){
+					bloqueo();
+				} else {
+					desbloqueo();
+				}
+			}
+			
+			public function bloqueo():void{
+				
+				//	modelo.block = new BloqueoEspera();
+				modelApp.block.width = this.width;
+				modelApp.block.height = this.height;
+				
+				PopUpManager.addPopUp(modelApp.block, this);
+				modelApp.activeTimer = true; 
+				
+			}
+			
+			public function desbloqueo():void{
+				PopUpManager.removePopUp(modelApp.block);
+				modelApp.activeTimer = false;
+			}
+			
+			public function quitaBloqueo(event:TimerEvent):void{
+				modelApp.bloqueo = false;	
+				var pop:PopupMensaje = new PopupMensaje();
+				pop.msg = 'Error de conexión';
+				pop.width = this.width;
+				pop.height = this.height;
+				PopUpManager.addPopUp(pop, this);
+				PopUpManager.centerPopUp(pop);
+			}
+			
+			public function set reloj(value:Boolean):void{
+				if(value){
+					iniciaReloj();
+				} else {
+					finReloj();
+					
+					
+				}
+			}
+			
+			private function iniciaReloj():void{
+				modelApp.timer.addEventListener(TimerEvent.TIMER, quitaBloqueo);
+				modelApp.timer.start();	
+			}
+			
+			private function finReloj():void{
+				modelApp.timer.removeEventListener(TimerEvent.TIMER, quitaBloqueo);
+				modelApp.timer.stop();
+				modelApp.timer.reset();
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<s:HTTPService id="config" url="config.xml" result="config_resultHandler(event)"/>
+	</fx:Declarations>
+	<fx:Style source="assets/WarLand.css"/>
+	<fx:Binding source="{modelApp.activeTimer}" destination="reloj"/>
+	<fx:Binding source="modelApp.auxPopMsg" destination="fnMsg"/>
+	<fx:Binding source="{modelApp.bloqueo}" destination="bloqDes"/>
+	<fx:Binding source="modelApp.partida.enJaque" destination="fnRevision"/>
+	<!--<fx:Binding source="modelApp.partida.duracion" destination="fnCambio"/>-->
+	<s:actionContent>
+		<s:Button icon="@Embed('assets/aplicativo/glyphicons_063_power.png')" click="NativeApplication.nativeApplication.exit();"/>
+	</s:actionContent>
+</s:ViewNavigatorApplication>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer  xmlns:fx="http://ns.adobe.com/mxml/2009"
+					xmlns:s="library://ns.adobe.com/flex/spark"
+					xmlns:graficos="componentes.graficos.*"
+					width="400" height="500" backgroundAlpha="{add}" backgroundColor="#000000"
+					color="#ffffff"
+					creationComplete="bordercontainer1_creationCompleteHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import componentes.clases.Alfil;
+			import componentes.clases.Caballo;
+			import componentes.clases.Dama;
+			import componentes.clases.IPieza;
+			import componentes.clases.Torre;
+			
+			import modelo.Modelo;
+			
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			[Bindable] private var add:Number = 0;
+			public var fnPos:Function;
+			public var pieza:*;
+			private var listPieza:ListCombo = new ListCombo();
+			private var modelApp:Modelo = Modelo.getInstance();
+			public var cuadroId:String;
+			public var movimiento:String;
+			
+			protected function bordercontainer1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.addEventListener(Event.ENTER_FRAME, oscurese);
+				listPieza.dataProvider = modelApp.arrPiezas;
+				listPieza.labelField = 'duracion';
+				listPieza.fnPost = seleccionPieza;
+			}
+			
+			protected function seleccionPieza(cu:*, op:Boolean = true):void{
+				PopUpManager.removePopUp(listPieza);
+				tbPieza.selected = true;
+				if(op){
+					listPieza.activo = false;
+					txtPieza.text = cu['duracion'];
+					//_cuentas = cu;	
+				}
+				
+			}	
+			
+			private function oscurese(event:Event):void{
+				add += 0.02;
+				if(add > 0.5){
+					this.removeEventListener(Event.ENTER_FRAME, oscurese);
+				}
+			}
+			
+			protected function cambio(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var pieza:IPieza;
+				switch(txtPieza.text){
+					case 'Dama':
+						pieza = new Dama();
+						movimiento += '=D'
+						break;
+					case 'Torre':
+						pieza = new Torre();
+						movimiento += '=T'
+						break;
+					case 'Alfil':
+						pieza = new Alfil();
+						movimiento += '=A'
+						break;
+					case 'Caballo':
+						pieza = new Caballo();
+						movimiento += '=C'
+						break;
+				}
+				pieza.cargaColor(modelApp.partida.colorUsuario == 'B' ? 'blancas' : 'negras');
+				fnPos.call(this, pieza, cuadroId, movimiento);
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function tbPieza_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(listPieza.activo == false){
+					listPieza.activo = true;
+					txtPieza.text = '';
+					
+					//	lbl.dispatchEvent(new FocusEvent(FocusEvent.FOCUS_IN));
+					listPieza.horizontalCenter = 0;
+					//listCategorias.percentWidth = 90;
+					listPieza.width = this.width;
+					listPieza.height = this.height;
+					PopUpManager.addPopUp(listPieza, this, true);
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:BorderContainer cornerRadius="0" borderColor="#eeeeee" backgroundColor="#222222" horizontalCenter="0" verticalCenter="0" width="90%" height="35%">
+		<s:Group width="100%" height="100%">
+			<s:TextInput id="txtPieza" text="Dama" height="40" width="90%" skinClass="spark.skins.mobile.TextInputSkin"
+						 editable="false" verticalCenter="0" color="#000000"/>
+			<s:ToggleButton id="tbPieza" y="0" right="0" width="100%" height="100%"
+							click="tbPieza_clickHandler(event)"
+							skinClass="skins.buttons.ComboBoxToggleButtonSkin"/>
+		</s:Group>
+		<s:Button bottom="10" horizontalCenter="0" label="Aceptar" click="cambio(event)"/>
+		
+	</s:BorderContainer>
+</s:BorderContainer>

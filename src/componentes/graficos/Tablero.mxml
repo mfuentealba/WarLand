@@ -1,0 +1,1813 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" width="400" height="300" xmlns:graficos="componentes.graficos.*"
+		 visible="true">
+	<fx:Script>
+		<![CDATA[
+			import com.adobe.utils.StringUtil;
+			
+			import componentes.clases.Alfil;
+			import componentes.clases.Caballo;
+			import componentes.clases.Dama;
+			import componentes.clases.IPieza;
+			import componentes.clases.Peon;
+			import componentes.clases.Rey;
+			import componentes.clases.Torre;
+			
+			import controlador.Controlador;
+			
+			import eventos.MovimientoEvent;
+			import eventos.MovimientoFenEvent;
+			import eventos.PartidaEvent;
+			
+			import modelo.Modelo;
+			
+			import mx.collections.ArrayCollection;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import spark.components.PopUpPosition;
+			
+			import vo.MovimientoVO;
+			import vo.PartidaVO;
+			import vo.ReyesVO;
+			
+			[Bindable] private var modelApp:Modelo = Modelo.getInstance();
+			private var piezas:Array = [];
+			private var turno:Boolean;
+			private var arrPosibles:Array = [];
+			private var cuadroSelect:Cuadro;
+			private var arrPeonesActPaso:Array = [];
+			public var fnChat:Function;
+			public var codigoEnroque:String = 'QKqk';
+			private var codigoAlPaso:String = '-';
+			public var codigoSMovPeonCambio:String = '0';
+			private var codigojugada:String = '1';
+			
+			
+			public var tableroLogicoAux:Array = [
+				[0, 1, 2, 3, 4, 5, 6, 7],
+				[8, 9, 10, 11, 12, 13, 14, 15],
+				[16, 17, 18, 19, 20, 21, 22, 23],
+				[24, 25, 26, 27, 28, 29, 30, 31],
+				[32, 33, 34, 35, 36, 37, 38, 39],
+				[40, 41, 42, 43, 44, 45, 46, 47],
+				[48, 49, 50, 51, 52, 53, 54, 55],
+				[56, 57, 58, 59, 60, 61, 62, 63]
+			];
+			
+			public var tableroLogico:Object = {
+				a8:0, b8:1, c8:2, d8:3, e8:4, f8:5, g8:6, h8:7,
+				a7:8, b7:9, c7:10, d7:11, e7:12, f7:13, g7:14, h7:15,
+				a6:16, b6:17, c6:18, d6:19, e6:20, f6:21, g6:22, h6:23,
+				a5:24, b5:25, c5:26, d5:27, e5:28, f5:29, g5:30, h5:31,
+				a4:32, b4:33, c4:34, d4:35, e4:36, f4:37, g4:38, h4:39,
+				a3:40, b3:41, c3:42, d3:43, e3:44, f3:45, g3:46, h3:47,
+				a2:48, b2:49, c2:50, d2:51, e2:52, f2:53, g2:54, h2:55,
+				a1:56, b1:57, c1:58, d1:59, e1:60, f1:61, g1:62, h1:63
+				
+			};
+			
+			public var tableroPosicionOp:Object = {
+				a8:[], b8:[], c8:[], d8:[], e8:[], f8:[], g8:[], h8:[],
+				a7:[], b7:[], c7:[], d7:[], e7:[], f7:[], g7:[], h7:[],
+				a6:[], b6:[], c6:[], d6:[], e6:[], f6:[], g6:[], h6:[],
+				a5:[], b5:[], c5:[], d5:[], e5:[], f5:[], g5:[], h5:[],
+				a4:[], b4:[], c4:[], d4:[], e4:[], f4:[], g4:[], h4:[],
+				a3:[], b3:[], c3:[], d3:[], e3:[], f3:[], g3:[], h3:[],
+				a2:[], b2:[], c2:[], d2:[], e2:[], f2:[], g2:[], h2:[],
+				a1:[], b1:[], c1:[], d1:[], e1:[], f1:[], g1:[], h1:[]
+				
+			};
+			
+			public var tableroPosicionPr:Object = {
+				a8:[], b8:[], c8:[], d8:[], e8:[], f8:[], g8:[], h8:[],
+				a7:[], b7:[], c7:[], d7:[], e7:[], f7:[], g7:[], h7:[],
+				a6:[], b6:[], c6:[], d6:[], e6:[], f6:[], g6:[], h6:[],
+				a5:[], b5:[], c5:[], d5:[], e5:[], f5:[], g5:[], h5:[],
+				a4:[], b4:[], c4:[], d4:[], e4:[], f4:[], g4:[], h4:[],
+				a3:[], b3:[], c3:[], d3:[], e3:[], f3:[], g3:[], h3:[],
+				a2:[], b2:[], c2:[], d2:[], e2:[], f2:[], g2:[], h2:[],
+				a1:[], b1:[], c1:[], d1:[], e1:[], f1:[], g1:[], h1:[]
+				
+			};
+			
+			[Bindable] public var tiempo:String;
+			[Bindable] public var colorUsuario:String;
+			public var arrLetras:Array = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+			
+			
+			protected function tgTablero_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				reyes = new ReyesVO();
+				modelApp.tablero = this;
+				modelApp.arrPiezasPropias = new ArrayCollection();
+				modelApp.arrPiezasOponente = new ArrayCollection();
+				//modelApp.reconFen = 'k7/8/8/8/8/8/8/K7/ w - -'
+				modelApp.reconFen = modelApp.reconFen == '' ? 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/ w QKqk - 0 1' : modelApp.reconFen;
+				if(modelApp.reconFen.split(' ')[1] == 'w' && modelApp.partida.colorUsuario == 'B'){
+					relojUsuario.timer.start();
+					relojOponente.cambioColor(false);
+					relojUsuario.cambioColor(true);
+				} else {
+					relojOponente.timer.start();
+					relojOponente.cambioColor(true);
+					relojUsuario.cambioColor(false);
+				}
+				if(modelApp.partida.colorUsuario == 'B' && modelApp.reconFen.split(' ')[1] == 'w'){
+					modelApp.partida.turno = true;
+				} else if(modelApp.partida.colorUsuario == 'N' && modelApp.reconFen.split(' ')[1] == 'b'){
+					modelApp.partida.turno = true;
+				} else {
+					modelApp.partida.turno = false;
+				}
+				tgTablero = generaPosicion(modelApp.reconFen, tgTablero);
+					
+				var evento:PartidaEvent = new PartidaEvent(PartidaEvent.RECONEXION, 0, '', '');
+				Controlador.getInstance().dispatchEvent(evento);
+			}
+			
+			public function generaPosicion(reconFen:String, _tgTablero:TileGroup = null):TileGroup{
+				var s:int = 0;
+				var arrFen:Array = reconFen.split(' ');
+				var arrTab:Array = String(arrFen[0]).split('/');
+				codigoEnroque = String(arrFen[2])
+				arrTab.pop();
+				modelApp.partidoActivo = true;
+				
+				var tgTablero:TileGroup;
+				
+				if(_tgTablero == null){
+					tgTablero = new TileGroup();	
+				} else {
+					tgTablero = _tgTablero;
+				}
+				
+				
+				var arrColores:Array = [0xeeeeee, 0xA52A2A];//0x0080FF
+				var cuadro:Cuadro;
+				var cambioLinea:int = 1;
+				var varColor:int = 0;
+				var j:int = 0;
+				var x:int = 0;
+				var arrNumeros:Array = [8, 7, 6, 5, 4, 3, 2, 1];
+				var colorDefinitivo:String = modelApp.partida.colorUsuario == 'B' ? 'blancas' : 'negras';
+				modelApp.arrPiezasOponente = new ArrayCollection();
+				if(modelApp.partida.colorUsuario == 'B'){
+					modelApp.partida.posReyPropio = 'e1';
+					modelApp.partida.posReyOponente = 'e8';
+				} else {
+					modelApp.partida.posReyPropio = 'e8';
+					modelApp.partida.posReyOponente = 'e1';
+				}
+				
+				
+				
+				for(var i:int = 0; i < 64; i++, cambioLinea++){
+					if(cambioLinea == 9){
+						cambioLinea = 1;
+						varColor++;
+						j = 0;
+						x++;
+					}
+					
+					cuadro = new Cuadro();
+					cuadro.colorFondo = arrColores[(i + varColor) % 2];
+					if((i + varColor) % 2 == 0){
+				//		cuadro.imgFondo.visible = true;
+					}
+					 
+					cuadro.idCuadrado = arrLetras[j] + arrNumeros[x]; 
+					tgTablero.addElement(cuadro);
+					cuadro.addEventListener(MouseEvent.CLICK, selecciona_clickHandler);
+					cuadro.height = tgTablero.height / 8;
+					cuadro.width = tgTablero.width / 8;
+					if(modelApp.partida.colorUsuario == 'N'){
+						Cuadro(tgTablero.getElementAt(i)).imgPieza.rotation = 180;
+					}
+					j++;
+				}
+				
+					
+					var pieza:IPieza;
+					
+					for(i = 0; i < arrTab.length; i++){
+						for(j = 0; j < String(arrTab[i]).length; j++){	
+							var char:String = String(arrTab[i]).charAt(j);
+							var pOponente:Boolean = false;
+							switch(char){
+								case 'p':
+									pieza = new Peon();									
+									pieza['color'] = 'negras';
+									pieza['idFen'] = char;
+									if(modelApp.partida.colorUsuario == 'B'){
+										pOponente = true;
+									}
+									break;
+								case 'P':
+									pieza = new Peon();									
+									pieza['color'] = 'blancas';
+									pieza['idFen'] = char;
+									if(modelApp.partida.colorUsuario == 'N'){
+										pOponente = true;
+									}
+									break;
+								case 'r':
+									pieza = new Torre();
+									pieza['color'] = 'negras';
+									pieza['idFen'] = char;
+									pieza['enroque'] = false;
+									if(modelApp.partida.colorUsuario == 'B'){
+										pOponente = true;
+									}
+									break;
+								case 'R':
+									pieza = new Torre();
+									pieza['color'] = 'blancas';
+									pieza['idFen'] = char;
+									pieza['enroque'] = false;
+									if(modelApp.partida.colorUsuario == 'N'){
+										pOponente = true;
+									}
+									break;
+								case 'n':
+									pieza = new Caballo();
+									pieza['color'] = 'negras';
+									pieza['idFen'] = char;
+									if(modelApp.partida.colorUsuario == 'B'){
+										pOponente = true;
+									}
+									break;
+								case 'N':
+									pieza = new Caballo();
+									pieza['color'] = 'blancas';
+									pieza['idFen'] = char;
+									if(modelApp.partida.colorUsuario == 'N'){
+										pOponente = true;
+									}
+									break;
+								case 'b':
+									pieza = new Alfil();
+									pieza['color'] ='negras';
+									pieza['idFen'] = char;
+									if(modelApp.partida.colorUsuario == 'B'){
+										pOponente = true;
+									}
+									break;
+								case 'B':
+									pieza = new Alfil();
+									pieza['color'] = 'blancas';
+									pieza['idFen'] = char;
+									if(modelApp.partida.colorUsuario == 'N'){
+										pOponente = true;
+									}
+									break;
+								case 'q':
+									pieza = new Dama();
+									pieza['color'] = 'negras';
+									pieza['idFen'] = char;
+									if(modelApp.partida.colorUsuario == 'B'){
+										pOponente = true;
+									}
+									break;
+								case 'Q':
+									pieza = new Dama();
+									pieza['color'] = 'blancas';
+									pieza['idFen'] = char;
+									if(modelApp.partida.colorUsuario == 'N'){
+										pOponente = true;
+									}
+									break;
+								case 'k':
+									pieza = new Rey();
+									pieza['color'] = 'negras';
+									pieza['idFen'] = char;
+									pieza['enroque'] = false;
+									modelApp.tablero.reyes['b'] = Cuadro(tgTablero.getElementAt(s)).idCuadrado;
+									if(modelApp.partida.colorUsuario == 'N'){
+										modelApp.partida.posReyPropio = Cuadro(tgTablero.getElementAt(s)).idCuadrado;
+									} else {
+										modelApp.partida.posReyOponente = Cuadro(tgTablero.getElementAt(s)).idCuadrado;
+									}
+									if(modelApp.partida.colorUsuario == 'B'){
+										pOponente = true;
+									}
+									break;
+								case 'K':
+									pieza = new Rey();
+									pieza['color'] = 'blancas';
+									pieza['idFen'] = char;
+									pieza['enroque'] = false;
+									modelApp.tablero.reyes['w'] = Cuadro(tgTablero.getElementAt(s)).idCuadrado;
+									if(modelApp.partida.colorUsuario == 'B'){
+										modelApp.partida.posReyPropio = Cuadro(tgTablero.getElementAt(s)).idCuadrado;
+									} else {
+										modelApp.partida.posReyOponente = Cuadro(tgTablero.getElementAt(s)).idCuadrado;
+									}
+									if(modelApp.partida.colorUsuario == 'N'){
+										pOponente = true;
+									}
+									break;
+								default:
+									s += int(String(arrTab[i]).charAt(j)) - 1;
+									break;
+							}	
+							if(pOponente){								
+								modelApp.arrPiezasOponente.addItem(pieza);
+							} else {
+								if(pieza != null){
+									modelApp.arrPiezasPropias.addItem(pieza);
+								}
+								
+							}
+							
+							Cuadro(tgTablero.getElementAt(s)).pieza = pieza;
+							pieza = null;
+							s++;
+						}
+					}
+					
+					codigoEnroque = arrFen[2];
+					
+					if(codigoEnroque.indexOf('Q') != -1){
+						Rey(Cuadro(tgTablero.getElementAt(tableroLogico['e1'])).pieza).enroque = true;
+						Torre(Cuadro(tgTablero.getElementAt(tableroLogico['a1'])).pieza).enroque = true;
+					} 
+					
+					if(codigoEnroque.indexOf('K') != -1){
+						Rey(Cuadro(tgTablero.getElementAt(tableroLogico['e1'])).pieza).enroque = true;
+						Torre(Cuadro(tgTablero.getElementAt(tableroLogico['h1'])).pieza).enroque = true;
+					}
+					
+					if(codigoEnroque.indexOf('q') != -1){
+						Rey(Cuadro(tgTablero.getElementAt(tableroLogico['e8'])).pieza).enroque = true;
+						Torre(Cuadro(tgTablero.getElementAt(tableroLogico['a8'])).pieza).enroque = true;
+					} 
+					
+					if(codigoEnroque.indexOf('k') != -1){
+						Rey(Cuadro(tgTablero.getElementAt(tableroLogico['e8'])).pieza).enroque = true;
+						Torre(Cuadro(tgTablero.getElementAt(tableroLogico['h8'])).pieza).enroque = true;
+					}
+					
+				
+					if(modelApp.partida.colorUsuario == 'B' && arrFen[1] == 'w'){
+						modelApp.partida.turno = true;
+						relojUsuario.timer.start();
+					} else if(modelApp.partida.colorUsuario == 'N' && arrFen[1] == 'b'){
+						modelApp.partida.turno = true;
+						relojUsuario.timer.start();
+					} else {
+						relojOponente.timer.start();
+						modelApp.partida.turno = false;
+					}
+				
+				var arrActTab:Array;
+				
+				for(i = 0; i < tgTablero.numElements; i++){
+					if(Cuadro(tgTablero.getElementAt(i)).pieza != null){	//Si tiene pieza
+						if(Cuadro(tgTablero.getElementAt(i)).idCuadrado == 'b4'){
+							i = i;
+						}
+						/****************---Opciones que tiene la pieza---*******************/
+						arrActTab = Cuadro(tgTablero.getElementAt(i)).pieza.posiblesMovExt(Cuadro(tgTablero.getElementAt(i)).idCuadrado, this, modelApp.partida.colorUsuario == 'B' ? 'N' : 'B', tgTablero);
+						
+						
+						
+						if(Cuadro(tgTablero.getElementAt(i)).pieza is Peon){
+							//Condicion para que no se considere avance de peon y si se concidere el comer de este
+							arrActTab = Peon(Cuadro(tgTablero.getElementAt(i)).pieza).amenaza(Cuadro(tgTablero.getElementAt(i)).idCuadrado, this, modelApp.partida.colorUsuario == 'B' ? 'N' : 'B');
+						}
+						
+						
+						
+						
+						
+						
+						
+						for(j = 0; j < arrActTab.length; j++){//cargamos a que parte se mueve la pieza seleccionada
+							if(Cuadro(tgTablero.getElementAt(i)).pieza['color'] != (modelApp.partida.colorUsuario == 'B' ? 'blancas' : 'negras')){
+								tableroPosicionOp[arrActTab[j]].push(Cuadro(tgTablero.getElementAt(i)).idCuadrado);	
+								if(arrActTab[j] == modelApp.partida.posReyPropio){//Buscamos si dentro de los movimientos de la pieza oponente se da jaque a nuestro rey
+									modelApp.partida.enJaque = true;
+									modelApp.partida.arrPiezaJaque.push(Cuadro(tgTablero.getElementAt(i)).idCuadrado);
+									
+									
+								}
+							} else {
+								tableroPosicionPr[arrActTab[j]].push(Cuadro(tgTablero.getElementAt(i)).idCuadrado);
+							}
+							
+							
+						}
+						
+						
+					}
+				}
+				
+				
+				
+				if(modelApp.partida.enJaque){
+					var posibles:Array = Cuadro(tgTablero.getElementAt(tableroLogico[modelApp.partida.posReyPropio])).pieza.posiblesMov(modelApp.partida.posReyPropio, this, modelApp.partida.colorUsuario, tgTablero);
+					var arrRecJaque:Object = {};
+					
+					if(posibles.length == 0){
+						var mt:Boolean = true;
+						if(modelApp.partida.arrPiezaJaque.length > 1){
+							mt = true;
+						} else {
+							if(!(Cuadro(tgTablero.getElementAt(modelApp.partida.arrPiezaJaque[0])).pieza is Caballo)){
+								if(String(modelApp.partida.arrPiezaJaque[0]).charAt(0) == modelApp.partida.posReyPropio.charAt(0)){
+									var ini:int;
+									var fin:int;
+									if(int(String(modelApp.partida.arrPiezaJaque[0]).charAt(1)) < int(modelApp.partida.posReyPropio.charAt(1))){
+										ini = int(String(modelApp.partida.arrPiezaJaque[0]).charAt(1));
+										fin = int(modelApp.partida.posReyPropio.charAt(1));
+									} else {
+										fin = int(String(modelApp.partida.arrPiezaJaque[0]).charAt(1));
+										ini = int(modelApp.partida.posReyPropio.charAt(1));
+									}
+									for(; ini < fin; ini++){
+										arrRecJaque[String(modelApp.partida.arrPiezaJaque[0]).charAt(0) + ini] = String(modelApp.partida.arrPiezaJaque[0]).charAt(0) + ini;
+									}
+								} else {
+									if(String(modelApp.partida.arrPiezaJaque[0]).charAt(1) == modelApp.partida.posReyPropio.charAt(1)){
+										
+										if(arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0)) < arrLetras.indexOf(modelApp.partida.posReyPropio.charAt(0))){
+											ini = arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0));
+											fin = arrLetras.indexOf(modelApp.partida.posReyPropio.charAt(0));
+										} else {
+											fin = arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0));
+											ini = arrLetras.indexOf(modelApp.partida.posReyPropio.charAt(0));
+										}
+										for(; ini < fin; ini++){
+											arrRecJaque[arrLetras[ini] + String(modelApp.partida.arrPiezaJaque[0]).charAt(1)] = arrLetras[ini] + String(modelApp.partida.arrPiezaJaque[0]).charAt(1);
+											
+										}	
+									} else {
+										if(arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0)) < arrLetras.indexOf(modelApp.partida.posReyPropio.charAt(0))){
+											ini = arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0));
+											fin = arrLetras.indexOf(modelApp.partida.posReyPropio.charAt(0));
+											var ini2:int = int(modelApp.partida.arrPiezaJaque[0].charAt(1));
+											var fin2:int = int(modelApp.partida.posReyPropio.charAt(1));
+										} else {
+											fin = arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0));
+											ini = arrLetras.indexOf(modelApp.partida.posReyPropio.charAt(0));
+											fin2 = int(modelApp.partida.arrPiezaJaque[0].charAt(1));
+											ini2 = int(modelApp.partida.posReyPropio.charAt(1));
+										}	
+										
+										if(ini2 < fin2){
+											var diff:int = 1;
+										} else {
+											diff = -1;
+										}
+										for(; ini < fin; ini++, ini2 += diff){
+											arrRecJaque[arrLetras[ini] + ini2] = arrLetras[ini] + ini2;												
+										}	
+									}
+								}
+								
+							} else {
+								arrRecJaque[modelApp.partida.arrPiezaJaque[0]] = modelApp.partida.arrPiezaJaque[0];
+							}
+							for(var m:int = 0; m < tgTablero.numElements && mt; m++){
+								/*var col:String = Cuadro(tgTablero.getElementAt(m)).pieza.getColor();
+								var p:IPieza = Cuadro(tgTablero.getElementAt(m)).pieza*/
+								if(Cuadro(tgTablero.getElementAt(m)).pieza != null && Cuadro(tgTablero.getElementAt(m)).pieza.getColor() == (modelApp.partida.colorUsuario == 'N' ? 'negras' : 'blancas')){//Busca cuadrado con pieza propia
+									posibles = Cuadro(tgTablero.getElementAt(m)).pieza.posiblesMov(Cuadro(tgTablero.getElementAt(m)).idCuadrado, this, modelApp.partida.colorUsuario, tgTablero);
+									for(var str:String in arrRecJaque){
+										if(posibles.indexOf(str) != -1){
+											mt = false;
+											break;
+										}	
+									}
+									
+								}
+							}
+						}
+					}	
+				}
+				
+				
+				
+				return tgTablero;
+			}
+			
+			public function generaFEN(_tgTablero:TileGroup = null):String{
+				var tgTablero:TileGroup;
+				if(_tgTablero != null){
+					tgTablero = _tgTablero;
+				} else {
+					tgTablero = this.tgTablero;
+				}
+				var fen:String = '';
+				var contadorVacios:String = '';
+				var cont:int = 0;
+				for(var i:int = 8; i > 0; i--){
+					for(var j:int = 0; j < 8; j++){
+						if(Cuadro(tgTablero.getElementAt(tableroLogico[arrLetras[j] + i])).pieza){
+							cont = 0;
+							fen += contadorVacios + Cuadro(tgTablero.getElementAt(tableroLogico[arrLetras[j] + i])).pieza.fnIdFen();
+							cont = 0;
+							contadorVacios = '';
+						} else {
+							cont++;
+							contadorVacios = '' + cont; 
+						}
+						
+					}
+					fen += contadorVacios + '/';
+					contadorVacios = '';
+					cont = 0;
+				}
+				
+				fen = StringUtil.trim(fen).replace(' ', '/') + ' ' + (modelApp.partida.turno == true ? (modelApp.partida.colorUsuario == 'B' ? 'w' : 'b') : (modelApp.partida.colorUsuario == 'B' ? 'b' : 'w')) + ' ' + codigoEnroque + ' ' + codigoAlPaso + ' ' + codigoSMovPeonCambio + ' ' + modelApp.partida.nroJugada;
+				
+				return fen;
+			}
+			
+			public function generaFEN2(codColor:String):String{
+				var fen:String = '';
+				var contadorVacios:String = '';
+				var cont:int = 0;
+				for(var i:int = 8; i > 0; i--){
+					for(var j:int = 0; j < 8; j++){
+						if(Cuadro(tgTablero.getElementAt(tableroLogico[arrLetras[j] + i])).pieza){
+							cont = 0;
+							fen += contadorVacios + Cuadro(tgTablero.getElementAt(tableroLogico[arrLetras[j] + i])).pieza.fnIdFen();
+							cont = 0;
+							contadorVacios = '';
+						} else {
+							cont++;
+							contadorVacios = '' + cont; 
+						}
+						
+					}
+					fen += contadorVacios + '/';
+					contadorVacios = '';
+					cont = 0;
+				}
+				
+				fen = StringUtil.trim(fen).replace(' ', '/') + ' ' + codColor + ' ' + codigoEnroque + ' ' + codigoAlPaso;
+				
+				return fen;
+			}
+			
+			protected function selecciona_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var i:int;
+				var promo:String = '';
+				var swtPromo:Boolean = false;
+				var fen:String;
+				var ini2:int;
+				var fin2:int;
+				codigoAlPaso = '-';
+				
+				if(modelApp.partida.turno == true){
+					if((event.currentTarget as Cuadro).currentState != 'habilitado'){
+						if(cuadroSelect){
+							cuadroSelect.currentState = 'vacio';// lo vacio
+							cuadroSelect = null;// y lo anulo	
+						}
+						
+						for(i = 0; i < arrPosibles.length; i++){//reseteamos antiguas posibilidades de mov
+							Cuadro(tgTablero.getElementAt(tableroLogico[arrPosibles[i]])).currentState = 'vacio';
+						}
+						arrPosibles = [];	
+					}
+					
+					if((event.currentTarget as Cuadro).currentState == 'habilitado'){//si estoy moviendo a otra casilla
+						var inc:int = int(codigoSMovPeonCambio);
+						codigoSMovPeonCambio = '' + (++inc);
+						if((event.currentTarget as Cuadro).pieza){
+							codigoSMovPeonCambio = '0';
+							var cuadroCapturado:Cuadro = new Cuadro();
+							cuadroCapturado.fondo.visible = false;
+							cuadroCapturado.width = hgPiezasCapturadas.height;
+							cuadroCapturado.height = hgPiezasCapturadas.height;
+							hgPiezasCapturadas.addElement(cuadroCapturado);
+							modelApp.arrPiezasOponente.removeItemAt(modelApp.arrPiezasOponente.getItemIndex(event.currentTarget.pieza));
+							cuadroCapturado.pieza = (event.currentTarget as Cuadro).pieza;
+							cuadroCapturado.colorFondo = 0xdddddd;
+						}
+						var idAnt:String = cuadroSelect.idCuadrado;
+						var idPost:String = event.currentTarget.idCuadrado;
+						(event.currentTarget as Cuadro).pieza = cuadroSelect.pieza;
+						
+						var antes:int = int(cuadroSelect.idCuadrado.charAt(1));
+						var despues:int = int((event.currentTarget as Cuadro).idCuadrado.charAt(1));
+						
+						var movimiento:String = cuadroSelect.idCuadrado + '--' + (event.currentTarget as Cuadro).idCuadrado + promo;
+						
+						
+						
+						var rep:String;
+						if((event.currentTarget as Cuadro).pieza is Torre){
+							Torre((event.currentTarget as Cuadro).pieza).mov.addItem({idAnt: idAnt, idPos: idPost, color: modelApp.partida.colorUsuario == 'B' ? 'b' : 'w'});
+							
+						}	
+						if((event.currentTarget as Cuadro).pieza is Rey){
+							Rey((event.currentTarget as Cuadro).pieza).mov.addItem({idAnt: idAnt, idPos: idPost, color: modelApp.partida.colorUsuario == 'B' ? 'b' : 'w'});
+						}
+						
+						if(cuadroSelect.pieza is Peon){
+							codigoSMovPeonCambio = '0';
+							//Peon((event.currentTarget as Cuadro).pieza).mov.addItem({idAnt: idAnt, idPos: idPost, color: modelApp.partida.colorUsuario});
+							
+							if(idAnt.charAt(0) != idPost.charAt(0) && Cuadro(tgTablero.getElementAt(tableroLogico[idPost.charAt(0) + idAnt.charAt(1)])).pieza is Peon){
+								if((modelApp.partida.colorUsuario == 'B' && idPost.charAt(1) == '6') || (modelApp.partida.colorUsuario == 'N' && idPost.charAt(1) == '3')){
+									Cuadro(tgTablero.getElementAt(tableroLogico[idPost.charAt(0) + idAnt.charAt(1)])).pieza = null;
+									Cuadro(tgTablero.getElementAt(tableroLogico[idPost.charAt(0) + idAnt.charAt(1)])).currentState = 'vacio';
+								}	
+							} else {
+								if(idPost.charAt(1) == '8' || idPost.charAt(1) == '1'){
+									var popPromo:PopupPromocion = new PopupPromocion();
+									popPromo.width = this.parentApplication.width;
+									popPromo.height = this.parentApplication.height;
+									PopUpManager.addPopUp(popPromo, this, true);
+									PopUpManager.centerPopUp(popPromo);
+									popPromo.fnPos = fnPromocion;
+									swtPromo = true;
+									popPromo.movimiento = movimiento;
+									popPromo.cuadroId = idPost;
+								}
+							}
+							
+							
+						}
+						
+						if(((event.currentTarget as Cuadro).pieza is Peon) && (despues - antes == 2 || despues - antes == -2)){
+							
+							var idCuadradoEvento:String = (event.currentTarget as Cuadro).idCuadrado;
+							var piezaCompare:* = Cuadro(tgTablero.getElementAt(tableroLogico[idCuadradoEvento] + 1)).pieza; 
+							
+							if(modelApp.partida.colorUsuario == 'B'){
+								codigoAlPaso = idAnt.charAt(0) + '3';
+							} else {
+								codigoAlPaso = idAnt.charAt(0) + '6';
+							}
+							
+							if(idCuadradoEvento.charAt(0) != 'a' && piezaCompare is Peon && piezaCompare['color'] != (modelApp.partida.colorUsuario == 'B' ? 'blancas' : 'negras')){
+								Peon(Cuadro(tgTablero.getElementAt(tableroLogico[idCuadradoEvento] + 1)).pieza).alPasoIzq = true;
+							}
+							
+							piezaCompare = Cuadro(tgTablero.getElementAt(tableroLogico[idCuadradoEvento] - 1)).pieza; 
+							if(idCuadradoEvento.charAt(0) != 'h' && piezaCompare is Peon){
+								Peon(Cuadro(tgTablero.getElementAt(tableroLogico[idCuadradoEvento] - 1)).pieza).alPasoDer = true;
+							}
+						}
+						
+						if((event.currentTarget as Cuadro).pieza is Peon){
+							Peon((event.currentTarget as Cuadro).pieza).alPasoDer = false;
+							Peon((event.currentTarget as Cuadro).pieza).alPasoIzq = false;
+						}
+						
+						
+						cuadroSelect.currentState = 'vacio';
+						cuadroSelect.pieza = null;
+						cuadroSelect = null;
+						fen = generaFEN();
+						modelApp.partida.turno = false;
+						this.relojOponente.timer.start();
+						this.relojUsuario.timer.stop();
+						for(i = 0; i < arrPosibles.length; i++){
+							Cuadro(tgTablero.getElementAt(tableroLogico[arrPosibles[i]])).currentState = 'vacio';
+						}
+						
+						//var movimientoEvent:MovimientoEvent = new MovimientoEvent(MovimientoEvent.EJECUTA_MOVIMIENTO, '', modelApp.partida.id, (relojUsuario.lblMin.text + ':' + relojUsuario.lblSeg.text), modelApp.partida.idOponente);
+						
+						arrPosibles = (event.currentTarget as Cuadro).pieza.posiblesMov((event.currentTarget as Cuadro).idCuadrado, this, modelApp.partida.colorUsuario, tgTablero);
+						for(i = 0; i < arrPosibles.length; i++){
+							if(Cuadro(tgTablero.getElementAt(tableroLogico[arrPosibles[i]])).idCuadrado == modelApp.partida.posReyOponente){
+								movimiento += '+';
+							}
+							
+						}
+						
+						var movimientoEvent:MovimientoEvent = new MovimientoEvent(MovimientoEvent.EJECUTA_MOVIMIENTO, movimiento, '' + modelApp.partida.id, (relojUsuario.lblMin.text + ':' + relojUsuario.lblSeg.text), modelApp.partida.idOponente, modelApp.partida.colorUsuario, '' + modelApp.partida.nroJugada, fen);
+						
+						if(!swtPromo){
+							relojOponente.cambioColor(true);
+							relojUsuario.cambioColor(false);
+							modelApp.partida.enJaque = false;
+							Controlador.getInstance().dispatchEvent(movimientoEvent);
+							for each(var p:IPieza in modelApp.arrPiezasPropias){
+								p['clavado'] = false;
+							}
+							p['arrMovRestric'] = [];
+							modelApp.partida.nroJugada++;
+						}
+						
+						
+					} else { //si estoy cambiando de cuadrado
+						if((event.currentTarget as Cuadro).pieza != null && (event.currentTarget as Cuadro).pieza['enabled'] == true){//si selecciono una de mis piezas
+							cuadroSelect = (event.currentTarget as Cuadro);
+							cuadroSelect.currentState = 'seleccionado';	
+							
+							//fnActualizaInfluenciaOponente();
+							if((event.currentTarget as Cuadro).pieza['clavado'] == true){
+								arrPosibles = cuadroSelect.pieza['arrMovRestric'];
+							} else {
+								arrPosibles = cuadroSelect.pieza.posiblesMov(cuadroSelect.idCuadrado, this, modelApp.partida.colorUsuario, tgTablero);	
+							}
+							
+							
+							
+							if(modelApp.partida.enJaque){
+								if(modelApp.partida.arrPiezaJaque.length > 1 && !(cuadroSelect.pieza is Rey)){
+									arrPosibles = [];
+									cuadroSelect.currentState = 'vacio';
+									cuadroSelect = null;
+								} else {
+									if(arrPosibles.indexOf(modelApp.partida.arrPiezaJaque[0]) != -1){
+										var ind:int = arrPosibles.indexOf(modelApp.partida.arrPiezaJaque[0]);
+										var cuadroOp:Cuadro = Cuadro(tgTablero.getElementAt(tableroLogico[arrPosibles[ind]])); 
+										cuadroOp.currentState = 'habilitado';
+									}
+									
+									if(Cuadro(tgTablero.getElementAt(tableroLogico[modelApp.partida.arrPiezaJaque[0]])).pieza is Caballo && !(cuadroSelect.pieza is Rey)){
+										arrPosibles = [];
+										//cuadroSelect.currentState = 'vacio';
+										//cuadroSelect = null;
+										if(cuadroOp != null){
+											arrPosibles.push(cuadroOp.idCuadrado);
+										}
+									} else {
+										
+										if(cuadroSelect.pieza is Rey){
+											var posReyIni:String = modelApp.partida.posReyPropio;
+											for(i = 0; i < arrPosibles.length; i++){
+												modelApp.partida.posReyPropio = arrPosibles[i];
+												var piezaAnt:IPieza = Cuadro(tgTablero.getElementAt(tableroLogico[arrPosibles[i]])).pieza;
+												Cuadro(tgTablero.getElementAt(tableroLogico[arrPosibles[i]])).pieza = cuadroSelect.pieza;
+												cuadroSelect.pieza = null;
+												for(var j:int = 0; j < modelApp.partida.arrPiezaJaque.length; j++){
+													var arrActTab:Array = Cuadro(tgTablero.getElementAt(tableroLogico[modelApp.partida.arrPiezaJaque[j]])).pieza.posiblesMov(Cuadro(tgTablero.getElementAt(tableroLogico[modelApp.partida.arrPiezaJaque[j]])).idCuadrado, this, modelApp.partida.colorUsuario == 'B' ? 'N' : 'B', tgTablero);
+													if(Cuadro(tgTablero.getElementAt(tableroLogico[modelApp.partida.arrPiezaJaque[j]])).pieza is Peon){
+														//Condicion para que no se considere avance de peon y si se concidere el comer de este
+														arrActTab = Peon(Cuadro(tgTablero.getElementAt(tableroLogico[modelApp.partida.arrPiezaJaque[j]])).pieza).amenaza(Cuadro(tgTablero.getElementAt(tableroLogico[modelApp.partida.arrPiezaJaque[j]])).idCuadrado, this, modelApp.partida.colorUsuario == 'B' ? 'N' : 'B');
+													}
+													if(arrActTab.indexOf(modelApp.partida.posReyPropio) == -1){
+														Cuadro(tgTablero.getElementAt(tableroLogico[arrPosibles[i]])).currentState = 'habilitado';	
+													}	
+												}												
+												cuadroSelect.pieza = Cuadro(tgTablero.getElementAt(tableroLogico[arrPosibles[i]])).pieza;
+												Cuadro(tgTablero.getElementAt(tableroLogico[arrPosibles[i]])).pieza = piezaAnt;
+											}
+											modelApp.partida.posReyPropio = posReyIni;
+										} else {
+											if(String(modelApp.partida.arrPiezaJaque[0]).charAt(0) == modelApp.partida.posReyPropio.charAt(0)){
+												if(int(String(modelApp.partida.arrPiezaJaque[0]).charAt(1)) < int(modelApp.partida.posReyPropio.charAt(1))){
+													var ini:int = int(String(modelApp.partida.arrPiezaJaque[0]).charAt(1));
+													var fin:int = int(modelApp.partida.posReyPropio.charAt(1));
+												} else {
+													fin = int(String(modelApp.partida.arrPiezaJaque[0]).charAt(1));
+													ini = int(modelApp.partida.posReyPropio.charAt(1));
+												}
+												for(; ini < fin; ini++){
+													ind = arrPosibles.indexOf((String(modelApp.partida.arrPiezaJaque[0]).charAt(0) + ini));
+													if(ind != -1){
+														Cuadro(tgTablero.getElementAt(tableroLogico[arrPosibles[ind]])).currentState = 'habilitado';
+													}
+												}
+											} else {
+												if(String(modelApp.partida.arrPiezaJaque[0]).charAt(1) == modelApp.partida.posReyPropio.charAt(1)){
+													
+													if(arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0)) < arrLetras.indexOf(modelApp.partida.posReyPropio.charAt(0))){
+														ini = arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0));
+														fin = arrLetras.indexOf(modelApp.partida.posReyPropio.charAt(0));
+													} else {
+														fin = arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0));
+														ini = arrLetras.indexOf(modelApp.partida.posReyPropio.charAt(0));
+													}
+													for(; ini < fin; ini++){
+														ind = arrPosibles.indexOf((arrLetras[ini] + String(modelApp.partida.arrPiezaJaque[0]).charAt(1)));
+														if(ind != -1){
+															Cuadro(tgTablero.getElementAt(tableroLogico[arrPosibles[ind]])).currentState = 'habilitado';
+														}
+													}	
+												} else {
+													if(arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0)) < arrLetras.indexOf(modelApp.partida.posReyPropio.charAt(0))){
+														ini = arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0));
+														fin = arrLetras.indexOf(modelApp.partida.posReyPropio.charAt(0));
+														ini2 = int(modelApp.partida.arrPiezaJaque[0].charAt(1));
+														fin2 = int(modelApp.partida.posReyPropio.charAt(1));
+													} else {
+														fin = arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0));
+														ini = arrLetras.indexOf(modelApp.partida.posReyPropio.charAt(0));
+														fin2 = int(modelApp.partida.arrPiezaJaque[0].charAt(1));
+														ini2 = int(modelApp.partida.posReyPropio.charAt(1));
+													}	
+													
+													if(ini2 < fin2){
+														var diff:int = 1;
+													} else {
+														diff = -1;
+													}
+													
+													for(; ini < fin; ini++, ini2 += diff){
+														ind = arrPosibles.indexOf((arrLetras[ini] + ini2));
+														if(ind != -1){
+															Cuadro(tgTablero.getElementAt(tableroLogico[arrPosibles[ind]])).currentState = 'habilitado';
+														}
+													}	
+												}
+											}
+										}
+									}
+								}
+							} else {
+								var _fen:String = generaFEN();
+								/*for(i = 0; i < arrPosibles.length; i++){	
+									if(simulaMov(modelApp.partida.colorUsuario == 'B' ? 'b' : 'w', reyes[modelApp.partida.colorUsuario == 'B' ? 'w' : 'b'], _fen, cuadroSelect.idCuadrado + '-' + arrPosibles[i])){
+										arrPosibles[i] = 'NO'
+									}
+								}*/
+								//	modelApp.partida.posReyPropio = posReyIni;
+								for(i = 0; i < arrPosibles.length; i++){
+									//if(arrPosibles[i] != 'NO'){
+										Cuadro(tgTablero.getElementAt(tableroLogico[arrPosibles[i]])).currentState = 'habilitado';	
+									//}
+								}	
+							}
+						}
+					}
+				}
+			}
+			
+			public function fnPromocion(pieza:*, cuadro:String, movimiento:String):void{
+				Cuadro(tgTablero.getElementAt(tableroLogico[cuadro])).pieza = pieza;
+				
+				
+				arrPosibles = Cuadro(tgTablero.getElementAt(tableroLogico[cuadro])).pieza.posiblesMov(Cuadro(tgTablero.getElementAt(tableroLogico[cuadro])).idCuadrado, this, modelApp.partida.colorUsuario, tgTablero);
+				for(var i:int = 0; i < arrPosibles.length; i++){
+					if(Cuadro(tgTablero.getElementAt(tableroLogico[arrPosibles[i]])).idCuadrado == modelApp.partida.posReyOponente){
+						movimiento += '+';
+					}
+					
+				}
+				var fen:String = generaFEN();
+				var movimientoEvent:MovimientoEvent = new MovimientoEvent(MovimientoEvent.EJECUTA_MOVIMIENTO, movimiento, '' + modelApp.partida.id, (relojUsuario.lblMin.text + ':' + relojUsuario.lblSeg.text), modelApp.partida.idOponente, modelApp.partida.colorUsuario, '' + modelApp.partida.nroJugada, fen);
+				
+				Controlador.getInstance().dispatchEvent(movimientoEvent);
+				relojOponente.cambioColor(true);
+				relojUsuario.cambioColor(false);
+				modelApp.partida.nroJugada++;
+				
+			}
+			
+			private function set orientacionTablero(val:String):void{
+				if(val != null){
+					if(val == 'N'){
+						btgTablero.rotation = 180;						
+					}
+				}
+			}
+			
+			
+			private function set ejecucionMovimiento(val:int):void{
+				if(val > 0){
+					var nuevoMovimientoTotal:String = modelApp.partida.arrMovimientos[modelApp.partida.arrMovimientos.length - 1];				
+					var arrNuevoMovimiento:Array = nuevoMovimientoTotal.split('--');
+					var difMov:int = Math.abs(int(arrNuevoMovimiento[0].toString().charAt(1)) - int(arrNuevoMovimiento[1].toString().charAt(1)));
+					var enJaque:Boolean = false;
+					if(String(arrNuevoMovimiento[1]).split('+').length > 1){
+						arrNuevoMovimiento[1] = String(arrNuevoMovimiento[1]).split('+')[0];
+						
+						enJaque = true;
+						
+						
+					}
+					
+					
+					
+					if(String(arrNuevoMovimiento[1]).split('=').length > 1){
+						var nuevaPieza:String = String(arrNuevoMovimiento[1]).split('=')[1];
+						arrNuevoMovimiento[1] = String(arrNuevoMovimiento[1]).split('=')[0];
+					}
+					
+					var idAnt:String = arrNuevoMovimiento[0];
+					var idPost:String = arrNuevoMovimiento[1];
+					
+					
+					if(Cuadro(tgTablero.getElementAt(tableroLogico[idAnt])).pieza is Peon && idAnt.charAt(0) != idPost.charAt(0) && Cuadro(tgTablero.getElementAt(tableroLogico[idPost.charAt(0) + idAnt.charAt(1)])).pieza is Peon){//si peon al paso
+						if((modelApp.partida.colorUsuario != 'B' && idPost.charAt(1) == '6') || (modelApp.partida.colorUsuario != 'N' && idPost.charAt(1) == '3')){//confirmando al paso
+							Cuadro(tgTablero.getElementAt(tableroLogico[idPost.charAt(0) + idAnt.charAt(1)])).pieza = null;
+							Cuadro(tgTablero.getElementAt(tableroLogico[idPost.charAt(0) + idAnt.charAt(1)])).currentState = 'vacio';	
+						}
+						
+					}
+					
+					if(Cuadro(tgTablero.getElementAt(tableroLogico[idAnt])).pieza is Torre){
+						Torre(Cuadro(tgTablero.getElementAt(tableroLogico[idAnt])).pieza).mov.addItem({idAnt: idAnt, idPos: idPost, color: modelApp.partida.colorUsuario == 'B' ? 'w' : 'b'});
+						
+					}	
+					
+					
+					if(Cuadro(tgTablero.getElementAt(tableroLogico[idAnt])).pieza is Rey){
+						Rey(Cuadro(tgTablero.getElementAt(tableroLogico[idAnt])).pieza).mov.addItem({idAnt: idAnt, idPos: idPost, color: modelApp.partida.colorUsuario == 'B' ? 'w' : 'b'});
+					}
+					
+					var i:int;
+					modelApp.partida.enJaque = false;
+					modelApp.partida.turno = true;
+					this.relojOponente.timer.stop();
+					this.relojUsuario.timer.start();
+					relojOponente.cambioColor(false);
+					relojUsuario.cambioColor(true);
+					if(Cuadro(this.tgTablero.getElementAt(this.tableroLogico[arrNuevoMovimiento[1]])).pieza){
+						var cuadroCapturado:Cuadro = new Cuadro();
+						cuadroCapturado.fondo.visible = false;
+						cuadroCapturado.width = hgPiezasPerdidas.height;
+						cuadroCapturado.height = hgPiezasPerdidas.height;
+						hgPiezasPerdidas.addElement(cuadroCapturado);
+						cuadroCapturado.pieza = Cuadro(this.tgTablero.getElementAt(this.tableroLogico[arrNuevoMovimiento[1]])).pieza;
+						cuadroCapturado.colorFondo = 0xdddddd;
+					}
+					Cuadro(this.tgTablero.getElementAt(this.tableroLogico[arrNuevoMovimiento[1]])).pieza = Cuadro(this.tgTablero.getElementAt(this.tableroLogico[arrNuevoMovimiento[0]])).pieza;
+					
+					
+					
+					if(Cuadro(this.tgTablero.getElementAt(this.tableroLogico[arrNuevoMovimiento[1]])).pieza is Peon){
+						if(difMov > 1){
+							if(arrNuevoMovimiento[0].toString().charAt(0) != 'a'){
+								if(Cuadro(this.tgTablero.getElementAt(this.tableroLogico[arrNuevoMovimiento[1]] - 1)).pieza is Peon){
+									Cuadro(this.tgTablero.getElementAt(this.tableroLogico[arrNuevoMovimiento[1]] - 1)).pieza['alPasoDer'] = true;
+									arrPeonesActPaso.push(this.tableroLogico[arrNuevoMovimiento[1]] - 1);
+								}
+								
+							}
+							if(arrNuevoMovimiento[0].toString().charAt(0) != 'h'){
+								if(Cuadro(this.tgTablero.getElementAt(this.tableroLogico[arrNuevoMovimiento[1]] + 1)).pieza is Peon){
+									Cuadro(this.tgTablero.getElementAt(this.tableroLogico[arrNuevoMovimiento[1]] + 1)).pieza['alPasoIzq'] = true;
+									arrPeonesActPaso.push(this.tableroLogico[arrNuevoMovimiento[1]] + 1);
+								}
+								
+							}
+							
+						}
+						var pieza:IPieza;
+						if(idPost.charAt(1) == '8' || idPost.charAt(1) == '1'){
+							switch(nuevaPieza){
+								case 'D':
+									pieza = new Dama();
+									break;
+								case 'T':
+									pieza = new Torre();
+									break;
+								case 'A':
+									pieza = new Alfil();
+									break;
+								case 'C':
+									pieza = new Caballo();
+									break;
+								
+							}
+							pieza.cargaColor(modelApp.partida.colorUsuario == 'B' ? 'negras' : 'blancas');
+							Cuadro(tgTablero.getElementAt(tableroLogico[idPost])).pieza = pieza;
+							var index:int = modelApp.arrPiezasOponente.getItemIndex(Cuadro(this.tgTablero.getElementAt(this.tableroLogico[arrNuevoMovimiento[1]])).pieza);
+							modelApp.arrPiezasOponente.removeItemAt(index);
+							modelApp.arrPiezasOponente.addItem(pieza);
+						}
+					}
+					
+					
+					
+					
+					
+					Cuadro(this.tgTablero.getElementAt(this.tableroLogico[arrNuevoMovimiento[0]])).pieza = null;
+					this.relojOponente.lblMin.text = modelApp.partida.tiempoOponente.split(':')[0];
+					this.relojOponente.lblSeg.text = modelApp.partida.tiempoOponente.split(':')[1];
+					var arrActTab:Array = [];
+					
+					modelApp.partida.arrPiezaJaque = [];
+					tableroPosicionPr = {
+						a8:[], b8:[], c8:[], d8:[], e8:[], f8:[], g8:[], h8:[],
+						a7:[], b7:[], c7:[], d7:[], e7:[], f7:[], g7:[], h7:[],
+						a6:[], b6:[], c6:[], d6:[], e6:[], f6:[], g6:[], h6:[],
+						a5:[], b5:[], c5:[], d5:[], e5:[], f5:[], g5:[], h5:[],
+						a4:[], b4:[], c4:[], d4:[], e4:[], f4:[], g4:[], h4:[],
+						a3:[], b3:[], c3:[], d3:[], e3:[], f3:[], g3:[], h3:[],
+						a2:[], b2:[], c2:[], d2:[], e2:[], f2:[], g2:[], h2:[],
+						a1:[], b1:[], c1:[], d1:[], e1:[], f1:[], g1:[], h1:[]
+						
+					};	
+					
+					tableroPosicionOp = {
+						a8:[], b8:[], c8:[], d8:[], e8:[], f8:[], g8:[], h8:[],
+						a7:[], b7:[], c7:[], d7:[], e7:[], f7:[], g7:[], h7:[],
+						a6:[], b6:[], c6:[], d6:[], e6:[], f6:[], g6:[], h6:[],
+						a5:[], b5:[], c5:[], d5:[], e5:[], f5:[], g5:[], h5:[],
+						a4:[], b4:[], c4:[], d4:[], e4:[], f4:[], g4:[], h4:[],
+						a3:[], b3:[], c3:[], d3:[], e3:[], f3:[], g3:[], h3:[],
+						a2:[], b2:[], c2:[], d2:[], e2:[], f2:[], g2:[], h2:[],
+						a1:[], b1:[], c1:[], d1:[], e1:[], f1:[], g1:[], h1:[]
+						
+					};	
+					
+					
+					for(i = 0; i < modelApp.arrPiezasOponente.length; i++){
+						if(modelApp.arrPiezasOponente.getItemAt(i).idCuadro == 'b4'){
+							i = i;
+						}
+						/****************---Opciones que tiene la pieza---*******************/
+						arrActTab = modelApp.arrPiezasOponente.getItemAt(i).posiblesMovExt(modelApp.arrPiezasOponente.getItemAt(i).idCuadro + '', this, modelApp.partida.colorUsuario == 'B' ? 'N' : 'B', tgTablero);
+						
+						
+						
+						if(modelApp.arrPiezasOponente.getItemAt(i) is Peon){
+							//Condicion para que no se considere avance de peon y si se concidere el comer de este
+							arrActTab = Peon(modelApp.arrPiezasOponente.getItemAt(i)).amenaza(modelApp.arrPiezasOponente.getItemAt(i).idCuadro, this, modelApp.partida.colorUsuario == 'B' ? 'N' : 'B');
+						}
+						
+						var j:int;
+						
+						
+						
+						
+						
+						for(j = 0; j < arrActTab.length; j++){//cargamos a que parte se mueve la pieza seleccionada
+							if(modelApp.arrPiezasOponente.getItemAt(i)['color'] != (modelApp.partida.colorUsuario == 'B' ? 'blancas' : 'negras')){
+								tableroPosicionOp[arrActTab[j]].push(modelApp.arrPiezasOponente.getItemAt(i).idCuadro);	
+								if(arrActTab[j] == modelApp.tablero.reyes[modelApp.partida.colorUsuario == 'B' ? 'w' : 'b']){//Buscamos si dentro de los movimientos de la pieza oponente se da jaque a nuestro rey
+									modelApp.partida.enJaque = true;
+									modelApp.partida.arrPiezaJaque.push(modelApp.arrPiezasOponente.getItemAt(i).idCuadro);
+									
+									
+								}
+							} else {
+								tableroPosicionPr[arrActTab[j]].push(modelApp.arrPiezasOponente.getItemAt(i).idCuadro);
+							}
+							
+							
+						}
+							
+							
+						
+					}
+					modelApp.partida.enJaque = enJaque; 
+					if(enJaque){
+						var posibles:Array = Cuadro(tgTablero.getElementAt(tableroLogico[modelApp.partida.posReyPropio])).pieza.posiblesMov(modelApp.partida.posReyPropio, this, modelApp.partida.colorUsuario, tgTablero);
+						var arrRecJaque:Object = {};
+						
+						if(posibles.length == 0){
+							var mt:Boolean = true;
+							if(modelApp.partida.arrPiezaJaque.length > 1){
+								mt = true;
+							} else {
+								if(!(Cuadro(tgTablero.getElementAt(tableroLogico[modelApp.partida.arrPiezaJaque[0]])).pieza is Caballo)){
+									if(String(modelApp.partida.arrPiezaJaque[0]).charAt(0) == modelApp.partida.posReyPropio.charAt(0)){
+										var ini:int;
+										var fin:int;
+										if(int(String(modelApp.partida.arrPiezaJaque[0]).charAt(1)) < int(modelApp.partida.posReyPropio.charAt(1))){
+											ini = int(String(modelApp.partida.arrPiezaJaque[0]).charAt(1));
+											fin = int(modelApp.partida.posReyPropio.charAt(1));
+										} else {
+											fin = int(String(modelApp.partida.arrPiezaJaque[0]).charAt(1));
+											ini = int(modelApp.partida.posReyPropio.charAt(1));
+										}
+										for(; ini < fin; ini++){
+											arrRecJaque[String(modelApp.partida.arrPiezaJaque[0]).charAt(0) + ini] = String(modelApp.partida.arrPiezaJaque[0]).charAt(0) + ini;
+										}
+									} else {
+										if(String(modelApp.partida.arrPiezaJaque[0]).charAt(1) == modelApp.partida.posReyPropio.charAt(1)){
+											
+											if(arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0)) < arrLetras.indexOf(modelApp.partida.posReyPropio.charAt(0))){
+												ini = arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0));
+												fin = arrLetras.indexOf(modelApp.partida.posReyPropio.charAt(0));
+											} else {
+												fin = arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0));
+												ini = arrLetras.indexOf(modelApp.partida.posReyPropio.charAt(0));
+											}
+											for(; ini < fin; ini++){
+												arrRecJaque[arrLetras[ini] + String(modelApp.partida.arrPiezaJaque[0]).charAt(1)] = arrLetras[ini] + String(modelApp.partida.arrPiezaJaque[0]).charAt(1);
+												
+											}	
+										} else {
+											if(arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0)) < arrLetras.indexOf(modelApp.partida.posReyPropio.charAt(0))){
+												ini = arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0));
+												fin = arrLetras.indexOf(modelApp.partida.posReyPropio.charAt(0));
+												var ini2:int = int(modelApp.partida.arrPiezaJaque[0].charAt(1));
+												var fin2:int = int(modelApp.partida.posReyPropio.charAt(1));
+											} else {
+												fin = arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0));
+												ini = arrLetras.indexOf(modelApp.partida.posReyPropio.charAt(0));
+												fin2 = int(modelApp.partida.arrPiezaJaque[0].charAt(1));
+												ini2 = int(modelApp.partida.posReyPropio.charAt(1));
+											}	
+											
+											if(ini2 < fin2){
+												var diff:int = 1;
+											} else {
+												diff = -1;
+											}
+											for(; ini < fin; ini++, ini2 += diff){
+												arrRecJaque[arrLetras[ini] + ini2] = arrLetras[ini] + ini2;												
+											}	
+										}
+									}
+									
+								} else {
+									arrRecJaque[modelApp.partida.arrPiezaJaque[0]] = modelApp.partida.arrPiezaJaque[0];
+								}
+								for(var m:int = 0; m < tgTablero.numElements && mt; m++){
+									if(Cuadro(tgTablero.getElementAt(m)).pieza != null && Cuadro(tgTablero.getElementAt(m)).pieza.getColor() == (modelApp.partida.colorUsuario == 'N' ? 'negras' : 'blancas')){//Busca cuadrado con pieza propia
+										posibles = Cuadro(tgTablero.getElementAt(m)).pieza.posiblesMov(Cuadro(tgTablero.getElementAt(m)).idCuadrado, this, modelApp.partida.colorUsuario, tgTablero);
+										for(var str:String in arrRecJaque){
+											if(posibles.indexOf(str) != -1){
+												mt = false;
+												break;
+											}	
+										}
+										
+									}
+								}
+							}
+						}	
+					}
+					
+					if(mt){
+						modelApp.fnRendir(null, 'JM');
+						relojOponente.timer.stop();
+						relojUsuario.timer.stop();
+						var mensaje:PopupMensaje = new PopupMensaje();
+						PopUpManager.addPopUp(mensaje, this);
+						mensaje.msg = 'El oponente ha ganado, ¿Desea volver a jugar?';
+						mensaje.btnExtra = true;
+						mensaje.btnLabel = 'Solicitar';
+						mensaje.funPost = fnSolicitudRevancha;
+						mensaje.width = this.width;
+						mensaje.height = this.height;
+						PopUpManager.centerPopUp(mensaje);
+						mensaje.btnDefault.label = 'Cancelar';
+					}
+					
+				}
+				
+			}
+			
+			
+			private function fnSolicitudRevancha():void{
+				
+			}
+			
+			private function fnFinTiempo():void{
+				modelApp.reconFen = '';
+				modelApp.fnRendir(null, 'Tiempo');
+				/*relojOponente.timer.stop();
+				relojUsuario.timer.stop();*/
+			}
+			
+			protected function fnMensaje(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				fnChat.call(this, event);
+				modelApp.msjNuevo = false;
+			}
+			
+			private function set fnEjecutarMensaje(val:Boolean):void{
+				if(val){
+					btnMsg.alpha = 1;
+				} else {
+					btnMsg.alpha = 0;
+				}
+			}
+			
+			
+			public function simulaMov(color:String, rey:String, fen:String, mov:String):Boolean{
+				var tgTablero:TileGroup = generaPosicion(fen);
+				var movSupuesto:MovimientoVO = new MovimientoVO();
+				movSupuesto.codigoAlpaso = codigoAlPaso;
+				movSupuesto.codigoEnroque = codigoEnroque;
+				movSupuesto.mov = mov;
+				var arrMov:Array = mov.split('-');
+				/*movSupuesto.piezaCapturada = Cuadro(tgTablero.getElementAt(tableroLogico[arrMov[1]])).pieza;
+				movSupuesto.piezaMovida = Cuadro(tgTablero.getElementAt(tableroLogico[arrMov[0]])).pieza;
+				*/
+				Cuadro(tgTablero.getElementAt(tableroLogico[arrMov[1]])).pieza = Cuadro(tgTablero.getElementAt(tableroLogico[arrMov[0]])).pieza;
+				Cuadro(tgTablero.getElementAt(tableroLogico[arrMov[0]])).pieza = null;
+				//trace(generaFEN(tgTablero));
+				var result:Boolean = fnBuscaJaque(color, rey, null, tgTablero);
+				codigoAlPaso = movSupuesto.codigoAlpaso;
+				codigoEnroque = movSupuesto.codigoEnroque;
+				/*Cuadro(tgTablero.getElementAt(tableroLogico[arrMov[1]])).pieza = movSupuesto.piezaCapturada;
+				Cuadro(tgTablero.getElementAt(tableroLogico[arrMov[0]])).pieza = movSupuesto.piezaMovida;
+				*/
+				return result;
+			}
+			
+			public function fnActualizaInfluenciaOponente():void{
+				fnBuscaJaque(modelApp.partida.colorUsuario == 'B' ? 'b' : 'w', reyes[modelApp.partida.colorUsuario == 'B' ? 'w' : 'b'], tableroPosicionOp, tgTablero);
+			}
+			
+			public function fnBuscaJaque(color:String, rey:String, tab:Object = null, _tgTablero:TileGroup = null):Boolean{
+				var arrActTab:Array = [];
+				var enJaque:Boolean;
+				var tableroPosicionOp:Object;
+				var tgTablero:TileGroup;
+				if(tab != null){
+					tableroPosicionOp = tab;
+					for(var str:String in tableroPosicionOp){
+						tableroPosicionOp[str] = [];
+					}
+				} else {
+					tableroPosicionOp = {
+						a8:[], b8:[], c8:[], d8:[], e8:[], f8:[], g8:[], h8:[],
+						a7:[], b7:[], c7:[], d7:[], e7:[], f7:[], g7:[], h7:[],
+						a6:[], b6:[], c6:[], d6:[], e6:[], f6:[], g6:[], h6:[],
+						a5:[], b5:[], c5:[], d5:[], e5:[], f5:[], g5:[], h5:[],
+						a4:[], b4:[], c4:[], d4:[], e4:[], f4:[], g4:[], h4:[],
+						a3:[], b3:[], c3:[], d3:[], e3:[], f3:[], g3:[], h3:[],
+						a2:[], b2:[], c2:[], d2:[], e2:[], f2:[], g2:[], h2:[],
+						a1:[], b1:[], c1:[], d1:[], e1:[], f1:[], g1:[], h1:[]
+						
+					};	
+				}
+				
+				if(_tgTablero != null){
+					tgTablero = _tgTablero;
+				} else {
+					tgTablero = this.tgTablero;
+				}
+				//trace(generaFEN(tgTablero));
+				for(var i:int = 0; i < 64; i++){
+					if(Cuadro(tgTablero.getElementAt(i)).pieza != null && Cuadro(tgTablero.getElementAt(i)).pieza.getColor() == (color == 'w' ? 'blancas' : 'negras')){
+						arrActTab = Cuadro(tgTablero.getElementAt(i)).pieza.posiblesMovExt(Cuadro(tgTablero.getElementAt(i)).idCuadrado, this, color == 'w' ? 'B' : 'N', tgTablero);
+						for(var j:int = 0; j < arrActTab.length; j++){//cargamos a que parte se mueve la pieza seleccionada
+							
+							tableroPosicionOp[arrActTab[j]].push(Cuadro(tgTablero.getElementAt(i)).idCuadrado);	
+							if(arrActTab[j] == rey){//Buscamos si dentro de los movimientos de la pieza oponente se da jaque a nuestro rey
+								enJaque = true;
+								
+								if(modelApp.partida.arrPiezaJaque.indexOf(Cuadro(tgTablero.getElementAt(i)).idCuadrado) == -1){
+									modelApp.partida.arrPiezaJaque.push(Cuadro(tgTablero.getElementAt(i)).idCuadrado);	
+								}
+								
+								
+								
+							}
+							
+							
+							
+						}
+					}
+				}
+				
+				return enJaque;
+			}
+			
+			
+			public var reyes:ReyesVO;
+			
+			public function fnCalculo(event:MouseEvent):void{
+				
+				var objFen:Object = {};
+				var arrMovidasHechas:Array = [];
+				var arrMov:Array = [];
+				var colorDefinitivo:String = 'blancas';
+				var arrActTab:Array = [];
+				var sw:Boolean = true;
+				var color:String = 'b';
+				var mt:Boolean = false;
+				var s:int = 0;
+				var enJaque:Boolean;
+				var idAnt:String;
+				var idPos:String
+				var j:int = 0;
+				var arrActTabLen:int = 0;
+				
+				mov = new MovimientoVO();
+				fenNuevo = generaFEN2('w');
+				objFen[fenNuevo] = [];
+				mov.arrFen = [];
+				mov.fenNuevo = fenNuevo;
+				movEv = new MovimientoFenEvent(MovimientoFenEvent.NUEVO_FEN, mov);
+				Controlador.getInstance().dispatchEvent(movEv);
+				
+				var sw2:Boolean = true;
+				for(var i:int = 0; sw; i++){
+					//trace(System.totalMemory / 1024);
+					if(i == 64){
+						
+						i = 0;
+					}
+					
+					if(Cuadro(tgTablero.getElementAt(i)).pieza != null && Cuadro(tgTablero.getElementAt(i)).pieza.getColor() == colorDefinitivo){
+						
+						/****************---Opciones que tiene la pieza---*******************/
+						arrActTab = Cuadro(tgTablero.getElementAt(i)).pieza.posiblesMov(Cuadro(tgTablero.getElementAt(i)).idCuadrado, this, colorDefinitivo == 'blancas' ? 'B' : 'N', tgTablero);
+						//enJaque = fnBuscaJaque(color, reyes[color == 'w' ? 'b' : 'w']);
+						if(enJaque){
+							arrPosibles = [];
+							if(modelApp.partida.arrPiezaJaque.length > 1 && !(Cuadro(tgTablero.getElementAt(i)).pieza is Rey)){
+								arrPosibles = [];
+								
+							} else {
+								var cuadroOp:Cuadro; 
+								
+								if(arrActTab.indexOf(modelApp.partida.arrPiezaJaque[0]) != -1){
+									arrPosibles.push(modelApp.partida.arrPiezaJaque[0]);
+								}
+								
+								if(Cuadro(tgTablero.getElementAt(tableroLogico[modelApp.partida.arrPiezaJaque[0]])).pieza is Caballo && !(Cuadro(tgTablero.getElementAt(i)).pieza is Rey)){
+									
+									
+								} else {
+									if(Cuadro(tgTablero.getElementAt(i)).pieza is Rey){
+										arrPosibles = arrActTab;
+									} else {
+										if(String(modelApp.partida.arrPiezaJaque[0]).charAt(0) == reyes[color == 'w' ? 'b' : 'w'].charAt(0)){
+											var ini:int;
+											var fin:int;
+											if(int(String(modelApp.partida.arrPiezaJaque[0]).charAt(1)) < int(reyes[color == 'w' ? 'b' : 'w'].charAt(1))){
+												ini = int(String(modelApp.partida.arrPiezaJaque[0]).charAt(1));
+												fin = int(reyes[color == 'w' ? 'b' : 'w'].charAt(1));
+											} else {
+												fin = int(String(modelApp.partida.arrPiezaJaque[0]).charAt(1));
+												ini = int(reyes[color == 'w' ? 'b' : 'w'].charAt(1));
+											}
+											for(; ini < fin; ini++){
+												var ind:int = arrActTab.indexOf((String(modelApp.partida.arrPiezaJaque[0]).charAt(0) + ini));
+												if(ind != -1){
+													arrPosibles.push(String(modelApp.partida.arrPiezaJaque[0]).charAt(0) + ini);
+												}
+											}
+										} else {
+											if(String(modelApp.partida.arrPiezaJaque[0]).charAt(1) == reyes[color == 'w' ? 'b' : 'w'].charAt(1)){
+												
+												if(arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0)) < arrLetras.indexOf(reyes[color == 'w' ? 'b' : 'w'].charAt(0))){
+													ini = arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0));
+													fin = arrLetras.indexOf(reyes[color == 'w' ? 'b' : 'w'].charAt(0));
+												} else {
+													fin = arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0));
+													ini = arrLetras.indexOf(reyes[color == 'w' ? 'b' : 'w'].charAt(0));
+												}
+												for(; ini < fin; ini++){
+													ind = arrActTab.indexOf((arrLetras[ini] + String(modelApp.partida.arrPiezaJaque[0]).charAt(1)));
+													if(ind != -1){
+														arrPosibles.push(String(arrLetras[ini] + String(modelApp.partida.arrPiezaJaque[0]).charAt(1)));
+													}
+												}	
+											} else {
+												if(arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0)) < arrLetras.indexOf(reyes[color == 'w' ? 'b' : 'w'].charAt(0))){
+													ini = arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0));
+													fin = arrLetras.indexOf(reyes[color == 'w' ? 'b' : 'w'].charAt(0));
+													var ini2:int = int(modelApp.partida.arrPiezaJaque[0].charAt(1));
+													var fin2:int = int(reyes[color == 'w' ? 'b' : 'w'].charAt(1));
+												} else {
+													fin = arrLetras.indexOf(String(modelApp.partida.arrPiezaJaque[0]).charAt(0));
+													ini = arrLetras.indexOf(reyes[color == 'w' ? 'b' : 'w'].charAt(0));
+													fin2 = int(modelApp.partida.arrPiezaJaque[0].charAt(1));
+													ini2 = int(reyes[color == 'w' ? 'b' : 'w'].charAt(1));
+												}	
+												
+												if(ini2 < fin2){
+													var diff:int = 1;
+												} else {
+													diff = -1;
+												}
+												for(; ini < fin; ini++, ini2 += diff){
+													ind = arrActTab.indexOf((arrLetras[ini] + ini2));
+													if(ind != -1){
+														arrPosibles.push(arrLetras[ini] + ini2);
+													}
+												}	
+											}
+										}
+									}	
+								}
+								
+								
+							}
+							arrActTab = arrPosibles;
+						}	
+						arrActTabLen += arrActTab.length; 
+						for(; j < arrActTab.length; j++){//cargamos a que parte se mueve la pieza seleccionada
+							var ss:int = s;
+							s = 0;
+							//arrActTabLen = true;
+							modelApp.partida.arrPiezaJaque = [];
+							var fenAnterior:String = generaFEN2(color == 'w' ? 'b' : 'w');
+							var mov:MovimientoVO = new MovimientoVO();
+							idAnt = Cuadro(tgTablero.getElementAt(i)).idCuadrado;
+							idPos = arrActTab[j];
+							
+							mov.mov = Cuadro(tgTablero.getElementAt(i)).idCuadrado + '-' + arrActTab[j];
+							
+							mov.piezaMovida = Cuadro(tgTablero.getElementAt(i)).pieza;
+							mov.piezaMovidaVO.idCuadroOrigen = mov.piezaMovida.fnCuadroIni();
+							mov.piezaMovidaVO.idFen = mov.piezaMovida.fnIdFen();
+								
+							mov.piezaCapturada = Cuadro(tgTablero.getElementAt(tableroLogico[arrActTab[j]])).pieza;
+							
+							if(mov.piezaCapturada != null){
+								mov.piezaCapturadaVO.idCuadroOrigen = mov.piezaCapturada.fnCuadroIni();
+								mov.piezaCapturadaVO.idFen = mov.piezaCapturada.fnIdFen();
+									
+							}
+							arrMovidasHechas.push(mov);
+							arrMov.push(mov.mov);
+							if(arrMov.length == 211 || arrMov.length == 161){
+								mov.mov = mov.mov;
+							}
+							
+							Cuadro(tgTablero.getElementAt(tableroLogico[arrActTab[j]])).pieza = Cuadro(tgTablero.getElementAt(i)).pieza;
+							Cuadro(tgTablero.getElementAt(i)).pieza = null;
+							
+							
+							
+							
+							var rep:String;
+							var enroqueAnt:String = codigoEnroque;
+							var alPasoAnt:String = codigoAlPaso;
+							
+							if(mov.piezaMovida is Torre){
+								Torre(mov.piezaMovida).mov.addItem({idAnt: idAnt, idPos: idPos, color: color});
+								Torre(mov.piezaMovida).mov.removeAll();
+							}
+							
+							mov.codigoEnroque = codigoEnroque 
+							mov.codigoAlpaso = '-';
+							mov.indexPosibleJugada = j;
+							mov.indexCuadrado = i;
+							if(mov.piezaMovida is Peon){
+								codigoSMovPeonCambio = '0';
+								var av:int = Number(idPos.charAt(1)) - Number(idAnt.charAt(1));
+								codigoAlPaso = '-';
+								if(av == 2){									
+									mov.codigoAlpaso = idAnt.charAt(0) + '3';
+									codigoAlPaso = idAnt.charAt(0) + '3';
+									if(idPos.charAt(0) != 'a'){
+										var let:int = arrLetras.indexOf(idPos.charAt(0));
+										if(Cuadro(tgTablero.getElementAt(this.tableroLogico[arrLetras[let] + idPos.charAt(1)])).pieza is Peon && Cuadro(tgTablero.getElementAt(this.tableroLogico[arrLetras[let] + idPos.charAt(1)])).pieza.getColor() != mov.piezaMovida.getColor()){
+											Cuadro(tgTablero.getElementAt(this.tableroLogico[arrLetras[let] + idPos.charAt(1)])).pieza['alPasoDer'] = true;
+											arrPeonesActPaso.push(this.tableroLogico[idPos] - 1);
+										}
+										
+									}
+									if(idPos.toString().charAt(0) != 'h'){
+										if(Cuadro(this.tgTablero.getElementAt(this.tableroLogico[idPos] + 1)).pieza is Peon){
+											Cuadro(this.tgTablero.getElementAt(this.tableroLogico[idPos] + 1)).pieza['alPasoIzq'] = true;
+											arrPeonesActPaso.push(this.tableroLogico[idPos] + 1);
+										}
+										
+									}
+								}
+								
+								if(av == -2){
+									mov.codigoAlpaso = idAnt.charAt(0) + '6';
+									codigoAlPaso = idAnt.charAt(0) + '6';
+									if(idPos.charAt(0) != 'a'){
+										let = arrLetras.indexOf(idPos.charAt(0));
+										if(Cuadro(tgTablero.getElementAt(this.tableroLogico[arrLetras[let] + idPos.charAt(1)])).pieza is Peon && Cuadro(tgTablero.getElementAt(this.tableroLogico[arrLetras[let] + idPos.charAt(1)])).pieza.getColor() != mov.piezaMovida.getColor()){
+											Cuadro(tgTablero.getElementAt(this.tableroLogico[arrLetras[let] + idPos.charAt(1)])).pieza['alPasoDer'] = true;
+											arrPeonesActPaso.push(this.tableroLogico[idPos] - 1);
+										}
+										
+									}
+									if(idPos.toString().charAt(0) != 'h'){
+										if(Cuadro(this.tgTablero.getElementAt(this.tableroLogico[idPos] + 1)).pieza is Peon){
+											Cuadro(this.tgTablero.getElementAt(this.tableroLogico[idPos] + 1)).pieza['alPasoIzq'] = true;
+											arrPeonesActPaso.push(this.tableroLogico[idPos] + 1);
+										}
+										
+									}
+								}
+								if(idAnt.charAt(0) != idPos.charAt(0) && Cuadro(tgTablero.getElementAt(tableroLogico[idPos.charAt(0) + idAnt.charAt(1)])).pieza is Peon){
+									if((color == 'w' && idPos.charAt(1) == '6') || (color == 'b' && idPos.charAt(1) == '3')){
+										Cuadro(tgTablero.getElementAt(tableroLogico[idPos.charAt(0) + idAnt.charAt(1)])).pieza = null;
+										Cuadro(tgTablero.getElementAt(tableroLogico[idPos.charAt(0) + idAnt.charAt(1)])).currentState = 'vacio';
+									}	
+								} 
+								if(idPos.charAt(1) == '8' || idPos.charAt(1) == '1'){
+									var aleatorio:int = Math.floor(Math.random()*(3));
+									switch(0){
+										case 0:
+											Cuadro(tgTablero.getElementAt(tableroLogico[arrActTab[j]])).pieza = new Dama();
+											Cuadro(tgTablero.getElementAt(tableroLogico[arrActTab[j]])).pieza.cargaColor(idPos.charAt(1) == '8' ? 'blancas' : 'negras');
+											Dama(Cuadro(tgTablero.getElementAt(tableroLogico[arrActTab[j]])).pieza).idFen = idPos.charAt(1) == '8' ? 'Q' : 'q';
+											mov.mov += '=D'
+											break;
+										case 1:
+											Cuadro(tgTablero.getElementAt(tableroLogico[arrActTab[j]])).pieza = new Torre();
+											Cuadro(tgTablero.getElementAt(tableroLogico[arrActTab[j]])).pieza.cargaColor(idPos.charAt(1) == '8' ? 'blancas' : 'negras');
+											Torre(Cuadro(tgTablero.getElementAt(tableroLogico[arrActTab[j]])).pieza).idFen = idPos.charAt(1) == '8' ? 'R' : 'r';
+											mov.mov += '=T'
+											break;
+										case 2:
+											Cuadro(tgTablero.getElementAt(tableroLogico[arrActTab[j]])).pieza = new Alfil();
+											Cuadro(tgTablero.getElementAt(tableroLogico[arrActTab[j]])).pieza.cargaColor(idPos.charAt(1) == '8' ? 'blancas' : 'negras');
+											Alfil(Cuadro(tgTablero.getElementAt(tableroLogico[arrActTab[j]])).pieza).idFen = idPos.charAt(1) == '8' ? 'B' : 'b';
+											mov.mov += '=A'
+											break;
+										case 3:
+											Cuadro(tgTablero.getElementAt(tableroLogico[arrActTab[j]])).pieza = new Caballo();
+											Cuadro(tgTablero.getElementAt(tableroLogico[arrActTab[j]])).pieza.cargaColor(idPos.charAt(1) == '8' ? 'blancas' : 'negras');
+											Caballo(Cuadro(tgTablero.getElementAt(tableroLogico[arrActTab[j]])).pieza).idFen = idPos.charAt(1) == '8' ? 'N' : 'n';
+											mov.mov += '=C'
+											break;
+										
+									}
+								}
+								
+								
+							} else {
+								codigoAlPaso = '-';
+								mov.codigoAlpaso = '-';
+							}
+							enJaque = fnBuscaJaque(color == 'w' ? 'b' : 'w', reyes[color], tableroPosicionOp);
+							/*if(enJaque){
+								enJaque = true;
+							}
+							enJaque = fnBuscaJaque(color == 'w' ? 'b' : 'w', reyes[color]);*/
+							
+							if(mov.piezaMovida is Rey){
+								reyes[(color == 'w' ? 'b' : 'w')] = idPos;
+								Rey(mov.piezaMovida).mov.addItem({idAnt: idAnt, idPos: idPos, color: color});
+								Rey(mov.piezaMovida).mov.removeAll();
+								
+							}
+							
+							var fenNuevo:String = generaFEN2(color);
+							if(fenNuevo == ' 6k1/8/8/8/8/8/3K4/8/ b - -'){
+								fenNuevo == '6k1/8/8/8/8/8/3K4/8/ b - -';
+							}
+							modelApp.fen = fenNuevo;
+							if(fenNuevo.split(' ')[0].indexOf('K') == -1 || fenNuevo.split(' ')[0].indexOf('k') == -1){
+								fenNuevo = fenNuevo;
+							}
+							mov.fenNuevo = fenNuevo;
+							
+							if(!fnBuscaJaque(color, reyes[color == 'w' ? 'b' : 'w'])){
+								if(objFen.hasOwnProperty(fenNuevo)){
+									if(String(objFen[fenNuevo]).indexOf(fenAnterior) != -1){
+										objFen[fenNuevo] = objFen[fenNuevo];
+									}
+									objFen[fenNuevo].push(fenAnterior);
+									Cuadro(tgTablero.getElementAt(i)).pieza = mov.piezaMovida;
+									Cuadro(tgTablero.getElementAt(tableroLogico[arrActTab[j]])).pieza = mov.piezaCapturada;								
+									//color = color == 'w' ? 'b' : 'w';
+									arrMov.pop();
+									enJaque = fnBuscaJaque(color, reyes[color == 'w' ? 'b' : 'w'], tableroPosicionOp);
+									mov.arrFen = objFen[fenNuevo];
+									var movEv:MovimientoFenEvent = new MovimientoFenEvent(MovimientoFenEvent.FIN_FEN, mov);
+									Controlador.getInstance().dispatchEvent(movEv);
+									mov = arrMovidasHechas.pop();
+									j = mov.indexPosibleJugada;
+									codigoEnroque = mov.codigoEnroque;
+									codigoAlPaso = mov.codigoAlpaso;
+									modelApp.fen = arrMovidasHechas[arrMovidasHechas.length - 1].fenNuevo;
+									if(codigoEnroque.indexOf('k') > -1){
+										Torre(Cuadro(tgTablero.getElementAt(tableroLogico['h8'])).pieza).enroque = true;
+										Rey(Cuadro(tgTablero.getElementAt(tableroLogico['e8'])).pieza).enroque = true;
+									}
+									if(codigoEnroque.indexOf('q') > -1){
+										Torre(Cuadro(tgTablero.getElementAt(tableroLogico['a8'])).pieza).enroque = true;
+										Rey(Cuadro(tgTablero.getElementAt(tableroLogico['e8'])).pieza).enroque = true;
+									}
+									if(codigoEnroque.indexOf('K') > -1){
+										Torre(Cuadro(tgTablero.getElementAt(tableroLogico['h1'])).pieza).enroque = true;
+										Rey(Cuadro(tgTablero.getElementAt(tableroLogico['e1'])).pieza).enroque = true;
+									}
+									if(codigoEnroque.indexOf('Q') > -1){
+										Torre(Cuadro(tgTablero.getElementAt(tableroLogico['a1'])).pieza).enroque = true;
+										Rey(Cuadro(tgTablero.getElementAt(tableroLogico['e1'])).pieza).enroque = true;
+									}
+									//arrActTabLen = 0;
+									
+								} else {								 
+									objFen[fenNuevo] = [fenAnterior];
+									j = 0;
+									color = color == 'w' ? 'b' : 'w';
+									colorDefinitivo = colorDefinitivo == 'blancas' ? 'negras' : 'blancas';
+									mov.arrFen = objFen[fenNuevo];
+									movEv = new MovimientoFenEvent(MovimientoFenEvent.NUEVO_FEN, mov);
+									Controlador.getInstance().dispatchEvent(movEv);
+									arrActTabLen = 0;
+									break;
+									
+								}	
+							} else {
+								mov = mov;
+								s = ss;
+								Cuadro(tgTablero.getElementAt(i)).pieza = mov.piezaMovida;
+								Cuadro(tgTablero.getElementAt(tableroLogico[arrActTab[j]])).pieza = mov.piezaCapturada;								
+								//color = color == 'w' ? 'b' : 'w';
+								arrMov.pop();
+								enJaque = fnBuscaJaque(color, reyes[color == 'w' ? 'b' : 'w'], tableroPosicionOp);
+								mov.arrFen = objFen[fenNuevo];
+								mov = arrMovidasHechas.pop();
+								j = mov.indexPosibleJugada;
+								codigoEnroque = mov.codigoEnroque;
+								codigoAlPaso = mov.codigoAlpaso;
+								modelApp.fen = arrMovidasHechas[arrMovidasHechas.length - 1].fenNuevo;
+								if(codigoEnroque.indexOf('k') > -1){
+									Torre(Cuadro(tgTablero.getElementAt(tableroLogico['h8'])).pieza).enroque = true;
+									Rey(Cuadro(tgTablero.getElementAt(tableroLogico['e8'])).pieza).enroque = true;
+								}
+								if(codigoEnroque.indexOf('q') > -1){
+									Torre(Cuadro(tgTablero.getElementAt(tableroLogico['a8'])).pieza).enroque = true;
+									Rey(Cuadro(tgTablero.getElementAt(tableroLogico['e8'])).pieza).enroque = true;
+								}
+								if(codigoEnroque.indexOf('K') > -1){
+									Torre(Cuadro(tgTablero.getElementAt(tableroLogico['h1'])).pieza).enroque = true;
+									Rey(Cuadro(tgTablero.getElementAt(tableroLogico['e1'])).pieza).enroque = true;
+								}
+								if(codigoEnroque.indexOf('Q') > -1){
+									Torre(Cuadro(tgTablero.getElementAt(tableroLogico['a1'])).pieza).enroque = true;
+									Rey(Cuadro(tgTablero.getElementAt(tableroLogico['e1'])).pieza).enroque = true;
+								}
+								arrActTabLen--;
+								
+							}
+							
+							
+							
+							/*if(arrActTab.length == 0){
+							mt = true;
+							}*/	
+						}	
+						s++;
+						j = 0;
+					} else {
+						s++;
+						if(s == 64){
+							mov = arrMovidasHechas.pop(); 
+							i = mov.indexCuadrado - 1;
+							j = mov.indexPosibleJugada + 1;	
+							if(arrMovidasHechas.length == 0){
+								sw = false;
+								break;
+							}
+							modelApp.fen = arrMovidasHechas[arrMovidasHechas.length - 1].fenNuevo;
+							
+							var arrMovida:Array = mov.mov.split('=');
+							arrMovida = String(arrMovida[0]).split('-');
+							Cuadro(tgTablero.getElementAt(tableroLogico[arrMovida[0]])).pieza = mov.piezaMovida;
+							Cuadro(tgTablero.getElementAt(tableroLogico[arrMovida[1]])).pieza = mov.piezaCapturada;
+							
+							if(arrActTabLen == 0){
+								if(enJaque){
+									if(color == 'w'){
+										mov.resultado = '1-0';
+									} else {
+										mov.resultado = '0-1';
+									}
+									
+								} else {
+									mov.resultado = 'TABLAS';
+								}
+								movEv = new MovimientoFenEvent(MovimientoFenEvent.RESULTADO_FEN, mov);
+								Controlador.getInstance().dispatchEvent(movEv);	
+							}
+							
+							arrActTabLen = 0;
+							arrMov.pop();
+							enJaque = fnBuscaJaque(color == 'w' ? 'b' : 'w', reyes[color], tableroPosicionOp);
+							color = color == 'w' ? 'b' : 'w';
+							colorDefinitivo = colorDefinitivo == 'blancas' ? 'negras' : 'blancas';
+							codigoEnroque = mov.codigoEnroque;
+							codigoAlPaso = mov.codigoAlpaso;
+							if(codigoEnroque.indexOf('k') > -1){
+								Torre(Cuadro(tgTablero.getElementAt(tableroLogico['h8'])).pieza).enroque = true;
+								Rey(Cuadro(tgTablero.getElementAt(tableroLogico['e8'])).pieza).enroque = true;
+							}
+							if(codigoEnroque.indexOf('q') > -1){
+								Torre(Cuadro(tgTablero.getElementAt(tableroLogico['a8'])).pieza).enroque = true;
+								Rey(Cuadro(tgTablero.getElementAt(tableroLogico['e8'])).pieza).enroque = true;
+							}
+							if(codigoEnroque.indexOf('K') > -1){
+								Torre(Cuadro(tgTablero.getElementAt(tableroLogico['h1'])).pieza).enroque = true;
+								Rey(Cuadro(tgTablero.getElementAt(tableroLogico['e1'])).pieza).enroque = true;
+							}
+							if(codigoEnroque.indexOf('Q') > -1){
+								Torre(Cuadro(tgTablero.getElementAt(tableroLogico['a1'])).pieza).enroque = true;
+								Rey(Cuadro(tgTablero.getElementAt(tableroLogico['e1'])).pieza).enroque = true;
+							}
+							
+							if(mov.codigoAlpaso.indexOf('-') == -1){
+								if(arrMovida[0].charAt(0) != 'a'){
+									let = arrLetras.indexOf(idPos.charAt(0));
+									if(Cuadro(tgTablero.getElementAt(this.tableroLogico[arrLetras[let] + idPos.charAt(1)])).pieza is Peon && Cuadro(tgTablero.getElementAt(this.tableroLogico[arrLetras[let] + idPos.charAt(1)])).pieza.getColor() != mov.piezaMovida.getColor()){
+										Cuadro(tgTablero.getElementAt(this.tableroLogico[arrLetras[let] + idPos.charAt(1)])).pieza['alPasoDer'] = true;
+										arrPeonesActPaso.push(this.tableroLogico[arrMovida[0]] - 1);
+									}
+									
+								}
+								if(arrMovida[0].toString().charAt(0) != 'h'){
+									if(Cuadro(this.tgTablero.getElementAt(this.tableroLogico[arrMovida[0]] + 1)).pieza is Peon){
+										Cuadro(this.tgTablero.getElementAt(this.tableroLogico[arrMovida[0]] + 1)).pieza['alPasoIzq'] = true;
+										arrPeonesActPaso.push(this.tableroLogico[arrMovida[0]] + 1);
+									}
+									
+								}	
+							}
+							
+							
+							
+							s = 0;
+						}
+					}
+					
+					
+					
+					
+				}
+				
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Binding source="colorUsuario" destination="orientacionTablero"/>
+	<fx:Binding source="modelApp.partida.nuevaMovida" destination="ejecucionMovimiento"/>
+	<fx:Binding source="modelApp.msjNuevo" destination="fnEjecutarMensaje"/>
+	<s:Rect width="100%" height="100%" topLeftRadiusX="0" topLeftRadiusY="0" topRightRadiusX="0" topRightRadiusY="0">
+		<s:fill>
+			<s:SolidColor color="#000000" alpha=".3"/>
+		</s:fill>
+	</s:Rect>
+	
+	
+	<s:VGroup horizontalCenter="0" top="5" width="100%" gap="5" height="100%">
+		<s:VGroup gap="0" width="100%">
+			<s:Group width="100%" height="7%">
+				<s:Rect width="100%" height="100%" topLeftRadiusX="10" topLeftRadiusY="10" topRightRadiusX="10" topRightRadiusY="10">
+					<s:fill>
+						<s:SolidColor color="#000000" alpha=".6"/>
+					</s:fill>
+				</s:Rect>
+				<s:HGroup width="100%" height="100%" paddingLeft="5">
+					
+					<graficos:Reloj id="relojOponente" height="100%" tiempo="{modelApp.tiempoOponente}" left="0"/>
+					
+					<s:HGroup width="90" horizontalAlign="right" paddingRight="5">
+						<s:Button id="btnMsg" right="5" height="100%" label="Mensaje"
+								  click="fnMensaje(event)" alpha="1" fontSize="13"/>
+					</s:HGroup>
+					
+				</s:HGroup>	
+			</s:Group>
+			
+			
+			<s:BorderContainer id="btgTablero" borderColor="#A52A2A" borderWeight="5" width="100%" height="{btgTablero.width}">
+				<s:TileGroup id="tgTablero" width="95%" height="{tgTablero.width}"
+							 horizontalCenter="0" verticalCenter="0"
+							 creationComplete="tgTablero_creationCompleteHandler(event)" horizontalGap="1" verticalGap="1"
+							 requestedColumnCount="8" requestedRowCount="8">
+					
+				</s:TileGroup>	
+			</s:BorderContainer>
+			
+			<s:Group width="100%" height="7%">
+				<s:Rect width="100%" height="100%" bottomLeftRadiusX="10" bottomLeftRadiusY="10" bottomRightRadiusX="10" bottomRightRadiusY="10">
+					<s:fill>
+						<s:SolidColor color="#000000" alpha=".6"/>
+					</s:fill>
+				</s:Rect>
+				<s:HGroup width="100%" height="100%" paddingLeft="5">
+					
+					<graficos:Reloj id="relojUsuario" height="100%" tiempo="{modelApp.tiempoPropio}" left="0" callback="{fnFinTiempo}"/>
+					
+					
+					
+				</s:HGroup>	
+			</s:Group>	
+		</s:VGroup>
+		
+		<!--<s:HGroup width="100%">
+			<graficos:Reloj id="relojUsuario" height="20" callback="{fnFinTiempo}"
+							tiempo="{modelApp.tiempoPropio}"/>
+			
+			
+		</s:HGroup>-->	
+		<s:BorderContainer width="100%" cornerRadius="5" backgroundColor="#000000" alpha=".6">
+			<s:layout>
+				<s:VerticalLayout verticalAlign="middle"/>
+			</s:layout>
+			<s:HGroup>
+				<s:Label text="G" color="#CCCCCC"/>
+				<s:Scroller height="100%" width="100%" >
+					<s:HGroup id="hgPiezasPerdidas" gap="0" height="20">
+						
+					</s:HGroup>
+				</s:Scroller>
+			</s:HGroup>
+			<s:HGroup>
+				<s:Label text="P" color="#CCCCCC"/>
+				<s:Scroller width="100%" height="20">
+					<s:HGroup id="hgPiezasCapturadas" gap="0" width="100%" height="100%">
+						
+					</s:HGroup>	
+				</s:Scroller>	
+			</s:HGroup>
+				
+		</s:BorderContainer>
+		
+	</s:VGroup>
+	
+</s:Group>

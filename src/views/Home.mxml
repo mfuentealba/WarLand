@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" title="Home" actionBarVisible="false"
+		backKeyPressed="view1_backKeyPressedHandler(event)"
+		creationComplete="view1_creationCompleteHandler(event)">
+	<fx:Script>
+		<![CDATA[
+			import componentes.graficos.PopupPerfilOponente;
+			
+			import controlador.Controlador;
+			
+			import eventos.PartidaEvent;
+			
+			import modelo.Modelo;
+			
+			import mx.events.FlexEvent;
+			
+			import spark.components.HGroup;
+			import spark.components.List;
+			import spark.layouts.HorizontalLayout;
+			
+			import vo.PartidaVO;
+			[Bindable] private var modelApp:Modelo = Modelo.getInstance();
+			protected function view1_backKeyPressedHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				event.preventDefault();
+				tvOpciones.selectedNavigator.activeView.dispatchEvent(event);
+			}
+			
+			
+			public function list_clickHandler(partida:PartidaVO):void
+			{
+				// TODO Auto-generated method stub
+				if(partida){
+					modelApp.partida = partida;
+					switch(modelApp.partida.tipo){
+						case 'bala':
+							modelApp.partida.puntosJ2 = modelApp.jugador.jugadorVO.puntosBala;
+							break;
+						case 'blitz':
+							modelApp.partida.puntosJ2 = modelApp.jugador.jugadorVO.puntosBlitz;
+							break;
+						case 'normal':
+							modelApp.partida.puntosJ2 = modelApp.jugador.jugadorVO.puntosNormal;
+							break;
+					}
+					modelApp.partida.idPlayer2 = int(modelApp.jugador.jugadorVO.id);
+					modelApp.partida.Player2 = modelApp.jugador.jugadorVO.user;
+					var evento:PartidaEvent = new PartidaEvent(PartidaEvent.BUSCA_PARTIDA, modelApp.jugador.sesion.id, null, null, modelApp.partida);
+					//modelApp.partida.id = List(event.currentTarget).selectedItem.id;
+					Controlador.getInstance().dispatchEvent(evento);
+				}
+			}
+			
+			private function set iniciaPartida(val:*):void{
+				if(modelApp.flagInicioPartida == true){
+					this.navigator.pushView(PartidaView);
+					
+				}
+			}
+			
+			protected function view1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				vnPartidas.actionBar.height = 35;
+				var h:HorizontalLayout = new HorizontalLayout();
+				h.paddingLeft = 5;
+				h.verticalAlign = 'middle';
+				vnPartidas.actionBar.navigationGroup.layout = h;
+				
+				modelApp.popPerfilOponente.width = this.width;
+				modelApp.popPerfilOponente.height = this.height;
+				
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Binding source="modelApp.flagInicioPartida" destination="iniciaPartida"/>
+	<s:TabbedViewNavigator id="tvOpciones" width="100%" height="100%">
+		<s:ViewNavigator firstView="views.WarLandHomeView" label="Partidas" width="100%" id="vnPartidas" height="100%"/>
+		<s:ViewNavigator firstView="views.WarLandTorneoView" label="Torneos" width="100%" height="100%"/>
+		<s:ViewNavigator firstView="views.WarLandMercadoView" label="Mercado" width="100%" height="100%"/>
+	</s:TabbedViewNavigator>
+</s:View>

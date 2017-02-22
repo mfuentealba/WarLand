@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" xmlns:fb="http://ns.adobe.com/flashbuilder/2009" alpha.disabled="0.5">
+
+	<s:states>
+		<s:State name="uninitialized"/>
+		<s:State name="loading"/>
+		<s:State name="ready"/>
+		<s:State name="invalid"/>
+		<s:State name="disabled"/>
+	</s:states>
+
+	<!--
+		 NOTE: this skin file contains sub-parts that may continue to react to
+		 Style code.  To remove this behavior create new copies of those skins
+		 and remove the styles.
+	-->
+	<!-- host component -->
+	<fx:Metadata>
+		<![CDATA[ 
+        [HostComponent("spark.components.Image")]
+        ]]>
+	</fx:Metadata>
+
+	<!-- Primary image display part -->
+	<s:BitmapImage id="imageDisplay"
+		left="0" right="0" top="0" bottom="0"/>
+
+	<!-- Progress indicator part -->
+	<s:Range id="progressIndicator"
+		horizontalCenter="0"
+		verticalCenter="0"
+		skinClass="spark.skins.spark.ImageLoadingSkin"
+		includeIn="loading"
+		layoutDirection="ltr"/>
+
+	<!-- Invalid image icon -->
+	<s:Image horizontalCenter="0" verticalAlign="top" includeIn="invalid">
+		<s:source>
+			<s:MultiDPIBitmapSource source160dpi="@Embed(source='/assets/images/hdpi/brokenImageLockedIcon/brokenImageLocked160.png')"
+									source240dpi="@Embed(source='/assets/images/hdpi/brokenImageLockedIcon/brokenImageLocked240.png')"
+									source320dpi="@Embed(source='/assets/images/hdpi/brokenImageLockedIcon/brokenImageLocked320.png')"/>
+		</s:source>
+	</s:Image>
+
+</s:Skin>

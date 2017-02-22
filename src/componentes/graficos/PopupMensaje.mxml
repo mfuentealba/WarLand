@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" width="400" height="300" color="#ffffff" creationComplete="bordercontainer1_creationCompleteHandler(event)" backgroundColor="#000000" backgroundAlpha="{add}">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			[Bindable] private var add:Number = 0;
+			public var funPost:Function;
+			[Bindable] public var msg:String;
+			[Bindable] public var btnExtra:Boolean = false;
+			[Bindable] public var btnLabel:String = '';
+			[Bindable] public var title:String = 'Atención';
+			//[Bindable] [Embed(source="assets/images/bandera.jpg")] public var rendirse:Class;
+			[Bindable] public var imagen:String = '';
+			
+			protected function bordercontainer1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.addEventListener(Event.ENTER_FRAME, oscurese);
+			}
+			
+			private function oscurese(event:Event):void{
+				add += 0.01;
+				if(add > 0.5){
+					this.removeEventListener(Event.ENTER_FRAME, oscurese);
+				}
+			}
+			
+			
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function funPost_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(funPost != null){
+					funPost.call(this);
+				}
+				PopUpManager.removePopUp(this);
+			}
+			
+		]]>
+	</fx:Script>
+	<s:BorderContainer width="60%" height="30%" cornerRadius="0" horizontalCenter="0"
+					   verticalCenter="0" borderStyle="inset" borderColor="#333333" borderWeight="0" borderVisible="false" skinClass="componentes.graficos.skins.BorderContainerPopMessageSkin" backgroundColor="#fefefe" fontFamily="Arial">
+		<s:layout>
+			<s:VerticalLayout horizontalAlign="center" gap="10" paddingBottom="0" paddingTop="10"/>
+		</s:layout>
+		<s:Image visible="{imagen == '' ? false : true}"
+				 includeInLayout="{imagen == '' ? false : true}"
+				 source="{imagen}"/><!--assets/images/ChessIconOK.png-->
+		<s:Group width="100%" visible="{title == '' ? false : true}" includeInLayout="{title == '' ? false : true}">
+			<!--<s:Rect width="100%" height="100%" topLeftRadiusX="10" topLeftRadiusY="10" topRightRadiusX="10" topRightRadiusY="10">
+				
+			
+				<s:fill>
+					<s:SolidColor color="#2626b3" />
+				</s:fill>
+			</s:Rect>-->
+			<s:Label top="10" left="10" right="10" text="{title}" fontSize="16" fontWeight="bold" color="#333333"/>
+		</s:Group>
+		<s:Rect width="200" height="1">
+			<!--<s:stroke>
+				<s:SolidColorStroke color="#000000" weight="1"/>
+			</s:stroke>-->
+			<s:fill>
+				<s:LinearGradient>
+					<s:GradientEntry color="#dddddd"/>
+					<s:GradientEntry color="#888888"/>
+					<s:GradientEntry color="#dddddd"/>
+				</s:LinearGradient>
+			</s:fill>
+		</s:Rect>
+		
+		<!--<s:Rect width="100%" height="1">
+			<s:fill>
+				<s:SolidColor color="#dddddd" />
+			</s:fill>
+		</s:Rect>-->
+		<!--<s:Image width="50" height="50" source="@Embed('assets/atencion.jpg')"/>-->
+		<s:HGroup width="100%" horizontalAlign="center">
+			<s:Label color="#333333" text="{msg}" fontSize="13" textAlign="center" width="100%"/>
+		</s:HGroup>
+		
+		<s:HGroup gap="0" bottom="0" width="100%">
+			<s:Button fontSize="12" width="100%" height="33" skinClass="componentes.graficos.skins.ButtonPopSkin" label="{btnLabel}" visible="{btnExtra}" includeInLayout="{btnExtra}" chromeColor="#ffffff" color="#333333" click="funPost_clickHandler(event)"/>
+			<s:Button fontSize="12" id="btnDefault" skinClass="componentes.graficos.skins.ButtonPopFinSkin" width="100%" height="33" label="Aceptar" chromeColor="#fefefe" color="#333333" click="button1_clickHandler(event)"/>
+		</s:HGroup>
+	</s:BorderContainer>
+</s:BorderContainer>

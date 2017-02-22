@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:HGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark">
+	
+	<fx:Script>
+		<![CDATA[
+			
+			public var arrApuestas:Array;
+			[Bindable] private var indice:int = 0;
+			protected function fnBtnMenos_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				indice--;
+				txtValor.text = arrApuestas[indice]['cantidad'];
+				lblGanancia.text = arrApuestas[indice]['ganancia'];
+			}
+			
+			protected function fnBtnMas_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				indice++;
+				txtValor.text = arrApuestas[indice]['cantidad'];
+				lblGanancia.text = arrApuestas[indice]['ganancia'];
+			}
+			
+			private function set fnCambioApuesta(val:int):void{
+				if(val == 0){
+					BtnMenos.enabled = false;
+				} else {
+					BtnMenos.enabled = true;
+				}
+				if(val == arrApuestas.length - 1){
+					BtnMas.enabled = false;
+				} else {
+					BtnMas.enabled = true;
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Binding source="indice" destination="fnCambioApuesta"/>
+	<s:Button id="BtnMenos" height="32" label="-" click="fnBtnMenos_clickHandler(event)"/>
+	<s:TextInput id="txtValor" text="0" editable="false" height="32" width="20%" color="#111111"/>
+	<s:Button id="BtnMas" label="+" height="32" click="fnBtnMas_clickHandler(event)"/>
+	<s:Label text="Ganas: "/>
+	<s:Label id="lblGanancia" width="20%" text="0"/>
+	
+</s:HGroup>

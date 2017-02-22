@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:compraservice="services.compraservice.*"
+				   width="400" height="300" backgroundAlpha="{add}" backgroundColor="#000000"
+				   color="#ffffff"
+				   creationComplete="bordercontainer1_creationCompleteHandler(event)">
+	<fx:Declarations>
+		<s:CallResponder id="createCompraResult"/>
+		<compraservice:CompraService id="compraService"/>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import valueObjects.Compra;
+			
+			[Bindable] private var add:Number = 0;
+			public var funPost:Function;
+			[Bindable] public var msg:String;
+			[Bindable] public var btnExtra:Boolean = false;
+			[Bindable] public var btnLabel:String = '';
+			
+			protected function bordercontainer1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.addEventListener(Event.ENTER_FRAME, oscurese);
+			}
+			
+			private function oscurese(event:Event):void{
+				add += 0.01;
+				if(add > 0.5){
+					this.removeEventListener(Event.ENTER_FRAME, oscurese);
+				}
+			}
+			
+			
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function funPost_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(funPost != null){
+					funPost.call(this);
+				}
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function group1_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+			}
+			
+			protected function compra_clickHandler(opc:Number):void
+			{
+				// TODO Auto-generated method stub
+				var comp:Compra = new Compra();
+				comp.estado = 'I';
+				comp.monto = 1000;
+				createCompraResult.token = compraService.createCompra(comp);
+			}
+			
+			
+			protected function borderContainer_creationCompleteHandler(event:FlexEvent):void
+			{
+				
+			}
+			
+		]]>
+	</fx:Script>
+	<s:BorderContainer id="borderContainer" width="90%" height="200" cornerRadius="10"
+					   creationComplete="borderContainer_creationCompleteHandler(event)"
+					   horizontalCenter="0" verticalCenter="0">
+		<s:layout>
+			<s:VerticalLayout horizontalAlign="center"  gap="10" paddingBottom="10"/>
+		</s:layout>
+		<s:Group width="100%">
+			<s:Rect width="100%" height="100%" topLeftRadiusX="5" topLeftRadiusY="5" topRightRadiusX="5" topRightRadiusY="5">
+				
+			
+				<s:fill>
+					<s:SolidColor color="#666666" />
+				</s:fill>
+			</s:Rect>
+			<s:Label top="10" left="10" right="10" text="Compras" fontSize="16" fontWeight="bold" color="#ffffff"/>
+		</s:Group>
+		
+		<!--<s:Rect width="100%" height="1">
+			<s:fill>
+				<s:SolidColor color="#dddddd" />
+			</s:fill>
+		</s:Rect>-->
+		<s:Scroller width="95%" height="65%">
+			<s:HGroup height="100%">
+				<s:Group height="100%" width="30%" click="compra_clickHandler(1)">
+					<!--<s:Image />-->	
+					<s:VGroup bottom="0" width="100%">
+						<s:Label text="50" color="0x333333"/>
+						<s:Label text="Precio: 1" color="0x333333"/>	
+					</s:VGroup>					
+				</s:Group>
+				
+				<s:Group height="100%" width="30%" click="compra_clickHandler(2)">
+					<!--<s:Image />-->	
+					<s:VGroup bottom="0" width="100%">
+						<s:Label text="100" color="0x333333"/>
+						<s:Label text="Precio: 2" color="0x333333"/>	
+					</s:VGroup>
+				</s:Group>
+				
+				
+				<s:Group height="100%" width="30%" click="compra_clickHandler(3)">
+					<!--<s:Image />-->	
+					<s:VGroup bottom="0" width="100%">
+						<s:Label text="200" color="0x333333"/>
+						<s:Label text="Precio: 3" color="0x333333"/>	
+					</s:VGroup>
+				</s:Group>
+				
+				
+				<s:Group height="100%" width="30%" click="compra_clickHandler(4)">
+					<!--<s:Image />-->	
+					<s:VGroup bottom="0" width="100%">
+						<s:Label text="250" color="0x333333"/>
+						<s:Label text="Precio: 4" color="0x333333"/>	
+					</s:VGroup>
+				</s:Group>
+				
+				
+				<s:Group height="100%" width="30%" click="compra_clickHandler(5)">
+					<!--<s:Image />-->	
+					<s:VGroup bottom="0" width="100%">
+						<s:Label text="300" color="0x333333"/>
+						<s:Label text="Precio: 5" color="0x333333"/>	
+					</s:VGroup>
+				</s:Group>
+				
+				
+				<s:Group height="100%" width="30%" click="compra_clickHandler(6)">
+					<!--<s:Image />-->	
+					<s:VGroup bottom="0" width="100%">
+						<s:Label text="400" color="0x333333"/>
+						<s:Label text="Precio: 6" color="0x333333"/>	
+					</s:VGroup>
+				</s:Group>
+				
+				<s:Group height="100%" width="30%" click="compra_clickHandler(7)">
+					<!--<s:Image />-->	
+					<s:VGroup bottom="0" width="100%">
+						<s:Label text="500" color="0x333333"/>
+						<s:Label text="Precio: 7" color="0x333333"/>	
+					</s:VGroup>
+				</s:Group>
+					
+					
+				
+				
+			</s:HGroup>
+		</s:Scroller>
+	</s:BorderContainer>
+</s:BorderContainer>

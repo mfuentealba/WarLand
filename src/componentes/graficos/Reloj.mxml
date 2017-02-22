@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   height="20" backgroundAlpha="0" initialize="bordercontainer1_creationCompleteHandler(event)" 
+				   borderVisible="false"
+				   color="{colorLetras}"
+				   backgroundColor="{colorFondo}">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			
+			[Bindable] public var min:String;
+			[Bindable] public var seg:String;
+			public var timer:Timer;
+			public var tiempo:String;
+			private var arrTime:Array;
+			private var minNum:int;
+			private var segNum:int;
+			public var callback:Function;
+			[Bindable] public var colorFondo:String;
+			[Bindable] public var colorLetras:String;
+			
+			protected function bordercontainer1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				arrTime = tiempo.split(':');
+				minNum = int(arrTime[0]);
+				segNum = int(arrTime[1]);
+				seg = segNum + (segNum == 0 ? '0' : '');
+				min = minNum + '';
+				timer = new Timer(1000);
+				timer.repeatCount = 0;
+				timer.addEventListener(TimerEvent.TIMER, ejecuta);
+			/*	timer.addEventListener(Event.ACTIVATE, cambioColor);
+				timer.addEventListener(Event.DEACTIVATE, cambioColor);*/
+			}
+			
+			public function cambioColor(val:Boolean):void{
+				if(val){
+					colorFondo = '0xeeeeee';
+					colorLetras = '0xeeeeee';
+				} else {
+					colorFondo = '0x222222';
+					
+					colorLetras = '0x222222';
+				}
+			}
+			
+			
+			
+			private function ejecuta(event:TimerEvent):void{
+				segNum--;
+				if(segNum < 0){
+					segNum = 59;
+					seg = segNum + '';
+					minNum--;
+					if(minNum < 0){
+						timer.removeEventListener(TimerEvent.TIMER, ejecuta);
+						seg = '00';
+						min = '0';
+						if(callback != null){
+							callback.call(this);
+						}
+					}
+					min = minNum + '';
+				} else {
+				
+					seg = (segNum < 10 ? '0' : '') + segNum + '';
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<s:layout>
+		<s:HorizontalLayout verticalAlign="middle"/>
+	</s:layout>
+	<!--<s:BorderContainer cornerRadius="0" height="20" initialize="bordercontainer1_creationCompleteHandler(event)" fontFamily="Reloj_Digital" backgroundAlpha=".3" backgroundColor="{colorFondo}" color="{colorLetras}">
+		<s:layout>
+			<s:HorizontalLayout paddingBottom="2" paddingLeft="2" paddingRight="2" paddingTop="2"/>
+			
+		</s:layout>-->
+		<s:Label id="lblMin" text="{min}" fontSize="12"/>
+		<s:Label text=":" fontSize="12"/>
+		<s:Label id="lblSeg" text="{seg}" fontSize="12"/>
+	<!--</s:BorderContainer>-->
+</s:BorderContainer>

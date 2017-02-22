@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+	ADOBE SYSTEMS INCORPORATED
+	Copyright 2010 Adobe Systems Incorporated
+	All Rights Reserved.
+
+	NOTICE: Adobe permits you to use, modify, and distribute this file
+	in accordance with the terms of the license agreement accompanying it.
+
+-->
+
+<Graphic version="2.0" xmlns="http://ns.adobe.com/fxg/2008" viewHeight= "43" viewWidth= "146"
+	scaleGridLeft="10" scaleGridTop="10" scaleGridRight="136" scaleGridBottom="33">
+	<!-- Outer Border -->
+	<Path data="H 100 V 30 M -100 0 H 100 M -100 -30 V 30">
+		<fill>
+			<SolidColor color="#646464"/>
+		</fill>
+	</Path>
+</Graphic>

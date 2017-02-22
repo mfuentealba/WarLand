@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Skin 
+	minHeight="21"
+	minWidth="21"
+	xmlns:fx="http://ns.adobe.com/mxml/2009"
+	xmlns:s="library://ns.adobe.com/flex/spark"
+	alpha.disabled="0.5">
+
+	<fx:Metadata>
+        /** 
+         * @copy spark.skins.spark.ApplicationSkin#hostComponent
+         */
+        [HostComponent("spark.components.Button")]
+    </fx:Metadata>
+
+	<s:states>
+		<s:State name="up"/>
+		<s:State name="over"/>
+		<s:State name="down"/>
+		<s:State name="disabled"/>
+	</s:states>
+
+	<!-- background -->
+	<s:Rect 
+		width="69" height="23"
+		left="0" right="0" top="0" bottom="0"
+		radiusX="2"
+		radiusY="2">
+
+		<s:fill>
+			<s:SolidColor 
+				color.down="#FF9900"
+				color.over="#FF9900"
+				alpha="0"
+				alpha.down="1"
+				alpha.over="1"/>
+		</s:fill>
+	</s:Rect>
+
+
+	<!-- icon -->
+	<s:BitmapImage id="iconDisplay"
+		horizontalCenter="0"
+		verticalCenter="0"
+		scaleMode="letterbox"
+		smooth="true"/>
+
+</s:Skin>

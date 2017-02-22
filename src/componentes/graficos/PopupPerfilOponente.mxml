@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				   xmlns:s="library://ns.adobe.com/flex/spark" width="400" height="300" color="#ffffff" creationComplete="bordercontainer1_creationCompleteHandler(event)" backgroundColor="#000000" backgroundAlpha="{add}">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import modelo.Modelo;
+			
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			[Bindable] private var add:Number = 0;
+			public var funPost:Function;
+			[Bindable] public var msg:String;
+			[Bindable] public var btnExtra:Boolean = false;
+			[Bindable] public var btnLabel:String = '';
+			[Bindable] public var modelApp:Modelo = Modelo.getInstance();
+			
+			protected function bordercontainer1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.addEventListener(Event.ENTER_FRAME, oscurese);
+			}
+			
+			private function oscurese(event:Event):void{
+				add += 0.01;
+				if(add > 0.5){
+					this.removeEventListener(Event.ENTER_FRAME, oscurese);
+				}
+			}
+			
+			
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function funPost_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+						
+				
+				PopUpManager.removePopUp(this);
+				modelApp.jugadorOponente = null;
+				funPost.call();
+			}
+			
+			protected function button2_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				modelApp.jugadorOponente = null;
+				PopUpManager.removePopUp(this);
+			}
+			
+		]]>
+	</fx:Script>
+	<s:SkinnableContainer skinClass="componentes.graficos.skins.ContenedorProfile" horizontalCenter="-3" verticalCenter="-24" width="80%" height="60%">
+		
+		<s:VGroup width="100%" gap="0" height="100%">
+			<s:Group width="100%" height="20%">
+				<s:Image source="@Embed(source='assets/profileDefault.jpg')" width="20%" height="100%" left="10" y="-10" backgroundColor="0xffffff"/>
+				<s:Label text="{modelApp.jugadorOponente.user}" width="70%" right="10" color="0xffffff" fontWeight="bold" fontSize="18" fontFamily="Artesanias" verticalCenter="0"/>	
+			</s:Group>
+			
+			<s:Group width="100%" height="2">
+				<s:Line left="0" right="0" y="0" xFrom="0" xTo="100" yFrom="0" yTo="0">
+					<s:stroke>
+						<s:SolidColorStroke color="0x111111" weight="1.2" caps="square"/>
+					</s:stroke>
+				</s:Line>
+				<s:Line left="0" y="1.2" right="0" xFrom="6" xTo="100" yFrom="0" yTo="0">
+					<s:stroke>
+						<s:SolidColorStroke color="0x555555" weight=".8" caps="square"/>				
+					</s:stroke>
+				</s:Line>
+			</s:Group>	
+			<s:HGroup width="100%" paddingTop="5">
+				<s:VGroup width="33.33%" horizontalAlign="center">
+					<s:Label text="{modelApp.jugadorOponente.puntosBala}" styleName="Puntos"/>
+					<s:Label text="Bala" styleName="infoPuntos"/>
+				</s:VGroup>
+				<s:VGroup width="33.33%" horizontalAlign="center">
+					<s:Label text="{modelApp.jugadorOponente.puntosBlitz}" styleName="Puntos"/>
+					<s:Label text="Blitz" styleName="infoPuntos"/>
+				</s:VGroup>
+				<s:VGroup width="33.33%" horizontalAlign="center">
+					<s:Label text="{modelApp.jugadorOponente.puntosNormal}" styleName="Puntos"/>
+					<s:Label text="Normal" styleName="infoPuntos"/>
+				</s:VGroup>
+			</s:HGroup>
+			
+			<s:HGroup width="100%" paddingTop="5">
+				<s:VGroup width="33.33%" horizontalAlign="center">
+					<s:Label text="{modelApp.jugadorOponente.triunfos}" styleName="Puntos"/>
+					<s:Label text="Triunfos" styleName="infoPuntos"/>
+				</s:VGroup>
+				<s:VGroup width="33.33%" horizontalAlign="center">
+					<s:Label text="{modelApp.jugadorOponente.derrotas}" styleName="Puntos"/>
+					<s:Label text="Derrotas" styleName="infoPuntos"/>
+				</s:VGroup>
+				<s:VGroup width="33.33%" horizontalAlign="center">
+					<s:Label text="{modelApp.jugadorOponente.tablas}" styleName="Puntos"/>
+					<s:Label text="Tablas" styleName="infoPuntos"/>
+				</s:VGroup>
+			</s:HGroup>
+			<s:Group width="100%" height="2">
+				<s:Line left="0" right="0" y="0" xFrom="0" xTo="100" yFrom="0" yTo="0">
+					<s:stroke>
+						<s:SolidColorStroke color="0x111111" weight="1.2" caps="square"/>
+					</s:stroke>
+				</s:Line>
+				<s:Line left="0" y="1.2" right="0" xFrom="6" xTo="100" yFrom="0" yTo="0">
+					<s:stroke>
+						<s:SolidColorStroke color="0x555555" weight=".8" caps="square"/>				
+					</s:stroke>
+				</s:Line>
+			</s:Group>
+			<s:Group width="100%" height="73">
+				<s:HGroup bottom="10" horizontalCenter="0" verticalCenter="0" click="funPost_clickHandler(event)">
+					<s:Button width="85" height="35" label="Jugar" fontSize="10"/>
+					<s:Button width="85" height="35" 
+							  label="Cerrar" 
+							  fontSize="10"
+							  click="button2_clickHandler(event)"/>	
+				</s:HGroup>
+				
+			</s:Group>
+		</s:VGroup>
+		
+		
+		
+	</s:SkinnableContainer>
+</s:BorderContainer>

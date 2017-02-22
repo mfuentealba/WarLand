@@ -1,0 +1,189 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:BorderContainer xmlns:fx="http://ns.adobe.com/mxml/2009"
+				   xmlns:s="library://ns.adobe.com/flex/spark"
+				   xmlns:graficos="componentes.graficos.*"
+				   width="400" height="500" backgroundAlpha="{add}" backgroundColor="#000000"
+				   color="#ffffff"
+				   creationComplete="bordercontainer1_creationCompleteHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import controlador.Controlador;
+			
+			import eventos.PartidaEvent;
+			
+			import modelo.Modelo;
+			
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			import vo.PartidaVO;
+			
+			[Bindable] private var add:Number = 0;
+			public var funPost:Function;
+			[Bindable] public var msg:String;
+			private var modelApp:Modelo = Modelo.getInstance();
+			private var listTiempo:ListCombo = new ListCombo;
+			
+			protected function bordercontainer1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.addEventListener(Event.ENTER_FRAME, oscurese);
+				listTiempo.dataProvider = modelApp.arrTiempo;
+				listTiempo.labelField = 'duracion';
+				listTiempo.fnPost = seleccionTiempo;
+			}
+			
+			
+			protected function seleccionTiempo(cu:*, op:Boolean = true):void{
+				PopUpManager.removePopUp(listTiempo);
+				tbTiempo.selected = true;
+				if(op){
+					listTiempo.activo = false;
+					txtTiempo.text = cu['duracion'];
+					//_cuentas = cu;	
+				}
+				
+			}	
+			
+			private function oscurese(event:Event):void{
+				add += 0.02;
+				if(add > 0.5){
+					this.removeEventListener(Event.ENTER_FRAME, oscurese);
+				}
+			}
+			
+			
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function funPost_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(funPost != null){
+					funPost.call(this);
+				}
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function generarPartida_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				
+				modelApp.partida = new PartidaVO();
+				modelApp.partida.apuesta = txtApuesta.txtValor.text;
+				modelApp.partida.ganancia = txtApuesta.lblGanancia.text;
+				modelApp.partida.Player1 = modelApp.jugador.jugadorVO.user;
+				modelApp.partida.idPlayer1 = modelApp.jugador.sesion.id;
+				modelApp.partida.color_p1 = rbgSelecColor.selectedValue.toString();
+				modelApp.partida.minELO = txtELOMin.text;
+				modelApp.partida.maxELO = txtELOMax.text;
+				modelApp.partida.qdp = chkQDP.selected;
+				
+				if(txtTiempo.text == '1:00' || txtTiempo.text == '2:00'){
+					modelApp.partida.tipo = 'bala';
+					modelApp.partida.puntosJ1 = modelApp.jugador.jugadorVO.puntosBala;	
+				} else if(txtTiempo.text == '5:00'){
+					modelApp.partida.tipo = 'blitz';
+					modelApp.partida.puntosJ1 = modelApp.jugador.jugadorVO.puntosBlitz;
+				} else {
+					modelApp.partida.tipo = 'normal';
+					modelApp.partida.puntosJ1 = modelApp.jugador.jugadorVO.puntosNormal;
+				}
+				
+				
+				modelApp.partida.duracion = txtTiempo.text;
+				var evento:PartidaEvent = new PartidaEvent(PartidaEvent.CREA_PARTIDA, modelApp.jugador.sesion.id, rbgSelecColor.selectedValue.toString(), txtTiempo.text, modelApp.partida);
+				Controlador.getInstance().dispatchEvent(evento);
+				//modelApp.conexion._xmlSocket.send('CP|');
+				PopUpManager.removePopUp(this);
+			}
+			
+			protected function tbTiempo_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				if(listTiempo.activo == false){
+					listTiempo.activo = true;
+					txtTiempo.text = '';
+					
+					//	lbl.dispatchEvent(new FocusEvent(FocusEvent.FOCUS_IN));
+					listTiempo.horizontalCenter = 0;
+					//listCategorias.percentWidth = 90;
+					listTiempo.width = this.width;
+					listTiempo.height = this.height;
+					PopUpManager.addPopUp(listTiempo, this, true);
+				}
+			}
+			
+			
+			protected function txtApuesta_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				txtApuesta.arrApuestas = [{cantidad: 0, ganancia: 0}, {cantidad: 10, ganancia: 15}, {cantidad: 20, ganancia: 30}, {cantidad: 50, ganancia: 75}, {cantidad: 70, ganancia: 105}, {cantidad: 100, ganancia: 160}, {cantidad: 150, ganancia: 255}, {cantidad: 200, ganancia: 360}, {cantidad: 300, ganancia: 570}];
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<s:RadioButtonGroup id="rbgSelecColor"/>
+	</fx:Declarations>
+	<s:BorderContainer width="300" height="400" cornerRadius="2" horizontalCenter="0" borderWeight="3" borderColor="#EEEEEE" backgroundColor="#222222"
+					   
+					   verticalCenter="0">
+		<s:layout>
+			<s:VerticalLayout horizontalAlign="center"  gap="10" paddingBottom="10"/>
+		</s:layout>
+		<s:Group width="100%">
+			<s:Rect width="100%" height="100%" topLeftRadiusX="10" topLeftRadiusY="10" topRightRadiusX="10" topRightRadiusY="10">
+				
+			
+				<s:fill>
+					<s:SolidColor color="#111111" />
+				</s:fill>
+			</s:Rect>
+			<s:Label top="10" left="10" right="10" text="Atencion" fontSize="16" fontWeight="bold" color="#ffffff"/>
+		</s:Group>
+		
+		<!--<s:Rect width="100%" height="1">
+			<s:fill>
+				<s:SolidColor color="#dddddd" />
+			</s:fill>
+		</s:Rect>-->
+		<s:VGroup width="100%" paddingLeft="10" paddingRight="10">
+			
+			<s:Group width="100%" height="100%">
+				<s:TextInput id="txtTiempo" text="5:00" height="40" width="100%" skinClass="spark.skins.mobile.TextInputSkin"
+							 editable="false" verticalCenter="0" color="#000000"/>
+				<s:ToggleButton id="tbTiempo" y="0" right="0" width="100%" height="100%"
+								click="tbTiempo_clickHandler(event)"
+								skinClass="skins.buttons.ComboBoxToggleButtonSkin"/>
+			</s:Group>
+			
+			<s:RadioButton label="Blancas" groupName="rbgSelecColor"/>
+			<s:RadioButton label="Negras" groupName="rbgSelecColor"/>
+			<s:RadioButton label="Aleatorio" selected="true" groupName="rbgSelecColor"/>
+			<graficos:TxtApuestas id="txtApuesta" width="100%" creationComplete="txtApuesta_creationCompleteHandler(event)">
+			</graficos:TxtApuestas>
+			<s:HGroup width="100%">
+				<s:Label text="ELO: "/>
+				<s:TextInput id="txtELOMin" text="0" width="100%" color="#111111" softKeyboardType="number"/>
+				<s:Label text="-"/>
+				<s:TextInput id="txtELOMax" text="9999" width="100%" color="#111111" softKeyboardType="number"/>
+			</s:HGroup>
+			<s:CheckBox id="chkQDP" label="Quien desconecta pierde" selected="true"/>
+		</s:VGroup>
+		
+		
+		<s:HGroup gap="10">
+			<s:Button width="135" height="49" label="Generar Partida" chromeColor="#000000"
+					  click="generarPartida_clickHandler(event)"
+					  skinClass="componentes.graficos.skins.BotonSinColor"/>
+			
+		</s:HGroup>
+	</s:BorderContainer>
+</s:BorderContainer>

@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" actionBarVisible="false" title="Login" backgroundColor="#ffffff" creationComplete="view1_creationCompleteHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import componentes.graficos.PopupLogin;
+			import componentes.graficos.PopupMensaje;
+			
+			import controlador.Controlador;
+			
+			import eventos.SesionEvent;
+			
+			import flash.display.Sprite;
+			import flash.display.StageAlign;
+			import flash.display.StageScaleMode;
+			
+			import modelo.Modelo;
+			
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			[Bindable]private var modelApp:Modelo = Modelo.getInstance();
+			private var controlador:Controlador = Controlador.getInstance();
+
+			
+			
+			protected function btnEntrar_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				var evento:SesionEvent = new SesionEvent(SesionEvent.INICIA_SESION, txtUser.text, txtPass.text);
+				//evento.callback = evaluaSesion;
+				Controlador.getInstance().dispatchEvent(evento);
+				//modelApp.conexion.envia('LR|' + txtUser.text + '|' + txtPass.text + '|', null);
+			}
+			
+			private function login(event:MouseEvent):void{
+				var popLog:PopupLogin = new PopupLogin();
+				popLog.width = this.parent.width;
+				popLog.height = this.parent.height;
+				PopUpManager.addPopUp(popLog, this);
+				PopUpManager.centerPopUp(popLog);
+			}
+			
+			private function set evaluaSesion(val:*):void{
+				if(!isNaN(modelApp.jugador.sesion.id)){
+					if(modelApp.jugador.sesion.id != 0){
+						this.navigator.pushView(Home);
+					} else {
+						var pop:PopupMensaje = new PopupMensaje();
+						pop.msg = 'Error en usuario o Password';
+						pop.width = this.width;
+						pop.height = this.height;
+						PopUpManager.addPopUp(pop, this);
+						PopUpManager.centerPopUp(pop);
+					}	
+				}
+				
+			}
+			
+			
+			protected function contacto_clickHandler(event:MouseEvent):void
+			{
+				// TODO Auto-generated method stub
+				this.navigator.pushView(AboutView);
+			}
+			
+			protected function view1_creationCompleteHandler(event:FlexEvent):void
+			{
+				// TODO Auto-generated method stub
+				//FacebookMobile.init(
+				trace(Capabilities.screenResolutionX);
+				trace(Capabilities.screenResolutionY);
+				trace(Capabilities.screenDPI);
+				trace(WarLand(parentApplication).width);
+				btn.height = WarLand(parentApplication).width / 5;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Binding source="modelApp.jugador.sesion.id" destination="evaluaSesion"/>
+	<!--<s:layout>
+		<s:VerticalLayout horizontalAlign="center"/>
+	</s:layout>
+	<s:Group width="100%" height="15%">
+		<s:Image x="0" y="4" width="321" height="100" source="assets/madera2.jpg"/>
+		<s:Label text="Chess" fontFamily="UniversalSerif" horizontalCenter="0" verticalCenter="0" color="#ffffff" fontSize="30"/>
+	</s:Group>
+	<s:Group width="100%" height="100%">
+		<s:Image source="assets/fondo2.jpg" height="350" width="1000"/>
+		<s:VGroup width="{this.width}" height="100%" horizontalCenter="0" verticalCenter="0">
+			<s:TextInput id="txtUser" prompt="Usuario" text="p1"/>
+			<s:TextInput id="txtPass" prompt="Password" displayAsPassword="true" text="2"/>
+			<s:Button id="btnEntrar" label="Ingresar" click="btnEntrar_clickHandler(event)"/>
+		</s:VGroup>
+			
+	</s:Group>-->
+	<!--<s:Rect width="100%"
+			height="100%">
+		<s:fill>
+			<s:BitmapFill source="@Embed(source='assets/portadaChess.jpg')"
+						  fillMode="scale"/>
+		</s:fill>
+	</s:Rect>-->
+	<s:VGroup>
+		
+		<!--<s:Label backgroundColor="#ffffff" color="0" text="Chess Club" fontFamily="Reloj_Digital"/>	
+		<s:Label backgroundColor="#ffffff" color="0" text="Chess Club" fontFamily="BlackCastle"/>
+		<s:Label backgroundColor="#ffffff" color="0" text="Chess Club" fontFamily="Gatintas"/>	
+		<s:Label backgroundColor="#ffffff" color="0" text="Chess Club" fontFamily="Cabanyal"/>
+		<s:Label backgroundColor="#ffffff" color="0" text="Chess Club" fontFamily="Certto"/>
+		<s:Label backgroundColor="#ffffff" color="0" text="Chess Club" fontFamily="miStyleFont"/>
+		<s:Label backgroundColor="#ffffff" color="0" text="Chess Club" fontFamily="Artesania2"/>
+		<s:Label backgroundColor="#ffffff" color="0" text="Chess Club" fontFamily="ComicSandchez"/>
+		<s:Label backgroundColor="#ffffff" color="0" text="Chess Club" fontFamily="CynicalHillsRegular"/>
+		<s:Label backgroundColor="#ffffff" color="0" text="Chess Club" fontFamily="PorMask"/>
+		<s:Label backgroundColor="#ffffff" color="0" text="Chess Club" fontFamily="DearAnnabelle"/>
+		<s:Label backgroundColor="#ffffff" color="0" text="Chess Club" fontFamily="UniversalSerif"/>
+		<s:Label backgroundColor="#ffffff" color="0" text="Chess Club" fontFamily="ArsleGothic" fontWeight="bold"/>
+		<s:Label backgroundColor="#ffffff" color="0" text="Chess Club" fontFamily="GothicBirthdayCake" fontWeight="bold"/>-->
+	</s:VGroup>
+	
+	<s:Group width="100%" height="100%">
+		<!--<s:layout>
+			<s:VerticalLayout paddingTop="10" paddingBottom="20" paddingLeft="10" paddingRight="10" verticalAlign="bottom"/>
+		</s:layout>-->
+		<s:Image source="assets/images/ajedrez.jpg" width="100%" top="50" height="45%"/>
+		<s:Label backgroundColor="#ffffff" text="Chess Club" fontSize="35" color="0" fontFamily="UniversalSerif"  horizontalCenter="0" verticalCenter="32"/>
+		<s:Button width="80%" id="btn" label="Ingresar {modelApp.tamAlt} {modelApp.tamAnc} {WarLand(parentApplication).width/10}" click="login(event)" visible="true" horizontalCenter="0" bottom="20" skinClass="skins.BtnInicial" chromeColor="#191419" />
+		<s:VGroup width="100%" visible="false" includeInLayout="false">		
+			<s:Label fontWeight="bold" text="Bienvenido" visible="false"/>
+			
+			
+			<s:HGroup width="100%" contentBackgroundAlpha="0" gap="0" visible="true" includeInLayout="true">
+				<s:BorderContainer width="100%" height="100%" backgroundColor="#fdfdfd"
+								   borderColor="#cccccc" borderStyle="solid" borderWeight="1"
+								   cornerRadius="10" contentBackgroundAlpha="0" borderAlpha="1">
+					<s:layout>
+						<s:HorizontalLayout paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0"/>
+					</s:layout>
+					<s:HGroup width="100%" gap="0">
+						<s:VGroup width="100%" gap="0" height="100%" paddingLeft="0" paddingRight="0" paddingTop="0" paddingBottom="0">
+							<s:HGroup gap="0" width="100%" paddingLeft="10" paddingRight="0" paddingTop="0" paddingBottom="0">
+								<s:Image height="100%" source="@Embed('assets/user.PNG')"/>
+								<s:Rect height="100%" width="1">
+									<s:fill>
+										<s:SolidColor color="#cccccc" />
+									</s:fill>
+								</s:Rect>
+								<s:TextInput id="txtUser" prompt="User" width="100%" borderVisible="false" chromeColor="#fdfdfd" contentBackgroundAlpha="1" height="100%" text="player1"/>	
+							</s:HGroup>
+							
+							<s:Rect width="100%" height="1">
+								<s:fill>
+									<s:SolidColor color="#cccccc" />
+								</s:fill>
+							</s:Rect>
+							<s:HGroup gap="0" width="100%" paddingLeft="10" paddingRight="0" paddingTop="0" paddingBottom="0">
+								<s:Image height="100%" source="@Embed('assets/contrasenia.PNG')"/>
+								<s:Rect height="100%" width="1">
+									<s:fill>
+										<s:SolidColor color="#cccccc" />
+									</s:fill>
+								</s:Rect>
+								<s:TextInput id="txtPass" prompt="Password" displayAsPassword="true" width="100%" borderVisible="false" chromeColor="#fdfdfd" contentBackgroundAlpha="1" height="100%" text="1"/>		
+							</s:HGroup>
+							
+						</s:VGroup>	
+						<s:Button label="Ingresar" chromeColor="#191419" skinClass="componentes.graficos.BotonBarra" width="40%" height="100%" click="btnEntrar_clickHandler(event)"/>
+					</s:HGroup>
+					
+				</s:BorderContainer> 
+			</s:HGroup>
+			<!--<s:Label id="btnReg" width="100%" color="#F2F2FA" fontWeight="bold"
+					 text="Solicite una cuenta aquí" textAlign="right"/>	
+			<s:Label id="contacto" width="100%" color="#E9E9F6" fontWeight="bold"
+					 text="A cerca de" textAlign="right" click="contacto_clickHandler(event)"/>	
+			-->
+		</s:VGroup>
+		
+		
+	</s:Group>
+	<s:Label bottom="5" width="100%" color="#FEFDFD" fontFamily="Segoe UI" fontSize="10"
+			 text="©Derechos Reservados." textAlign="center"/>
+	
+	<!--<s:navigationContent>
+		<s:Button label="Ingresar" skinClass="componentes.graficos.BotonBarra" width="40%" height="100%" click="btnEntrar_clickHandler(event)"/>
+	</s:navigationContent>-->
+		
+	
+</s:View>
